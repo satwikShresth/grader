@@ -40,7 +40,7 @@ async def get_current_user(request: Request):
     request.state.user = user
 
 
-app.add_middleware(SessionMiddleware, secret_key=str(uuid4()))
+app.add_middleware(SessionMiddleware, secret_key="abc123")
 templates = Jinja2Templates(directory=TEMPLATES)
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
 app.include_router(upload.router, prefix="/upload",

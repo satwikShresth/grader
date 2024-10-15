@@ -1,4 +1,5 @@
 import os
+import logging
 import json
 from fastapi.templating import Jinja2Templates
 from fastapi import APIRouter, Request, HTTPException, Depends, Query
@@ -12,6 +13,7 @@ from functools import lru_cache
 from cachetools import TTLCache
 
 
+logger = logging.getLogger('uvicorn.error')
 router = APIRouter(tags=["grading"])
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 html_cache = TTLCache(maxsize=100, ttl=300)  # Cache expires after 5 minutes
@@ -143,6 +145,7 @@ async def grade_assignment_form(
     rubric = assignment.rubric
 
     file_path = Path(submission.file_path)
+    logger.error(f"Path:{submission.file_path}")
     if not file_path.exists():
         raise HTTPException(
             status_code=404, detail="Submission file not found")
@@ -153,7 +156,6 @@ async def grade_assignment_form(
 
     result_html_path = file_path / 'result.html'
 
-    # Optional: Check if result.html is up-to-date
     submission_mtime = os.path.getmtime(file_path)
     result_html_mtime = os.path.getmtime(
         result_html_path) if result_html_path.exists() else 0
