@@ -1,0 +1,60 @@
+/* Gruvbox Color Palette */
+:root {
+    --gruvbox-bg: #3c3836;
+    --gruvbox-fg: #ebdbb2;
+    --gruvbox-yellow: #d79921;
+    --gruvbox-red: #cc241d;
+    --gruvbox-blue: #458588;
+}
+
+/* General Body Styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--gruvbox-bg);
+    color: var(--gruvbox-fg);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Error Container */
+.error-container {
+    background-color: var(--gruvbox-bg);
+    border: 1px solid var(--gruvbox-red);
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Headings */
+h1 {
+    color: var(--gruvbox-red);
+    font-size: 2.5em;
+    margin-bottom: 20px;
+}
+
+/* Paragraph for error details */
+p {
+    color: var(--gruvbox-fg);
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+/* Back to Login Link */
+.back-to-login {
+    background-color: var(--gruvbox-yellow);
+    color: var(--gruvbox-bg);
+    padding: 10px 20px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 1.1em;
+}
+
+.back-to-login:hover {
+    background-color: var(--gruvbox-blue);
+    color: var(--gruvbox-fg);
+}

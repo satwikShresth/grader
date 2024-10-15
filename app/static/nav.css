@@ -1,0 +1,35 @@
+/* Navbar styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    background-color: #504945; /* Lighter gray background for better contrast */
+    padding: 10px 0;
+    border-radius: 20px; /* Rounded navbar */
+}
+
+.navbar a {
+    margin: 0 15px;
+    padding: 10px;
+    text-decoration: none;
+    color: #8ec07c; /* Gruvbox green */
+    font-size: 18px;
+    font-family: Arial, sans-serif;
+    border-radius: 10px; /* Rounded links */
+}
+
+/* Navbar hover and active states */
+.navbar a:hover {
+    color: #83a598; /* Lightened blue for hover */
+}
+
+.navbar a:active {
+    color: #d79921; /* Gruvbox yellow */
+}
+
+.hidden {
+    visibility: hidden;
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+}

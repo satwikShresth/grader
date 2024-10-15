@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assignment Grading Form</title>
+    <link rel="stylesheet" href="/static/form.css">
+    <link rel="stylesheet" href="/static/nav.css">
+</head>
+<body>
+
+    <div class="navbar">
+        <a href="/">Home Page</a>
+        <a href="/grade/assignment">Grade Center</a>
+    </div>
+
+    <h1>Grading for Assignment {{ assignment_number }}</h1>
+
+    <div class="button-container" style="margin-right: 20px; justify-content: flex-end;">
+        <button type="button" onclick="openSubmission()" style="background-color: #d79921; color: white; padding: 10px 20px; font-size: 1em; border-radius: 4px;">
+            Open Submission
+        </button>
+    </div>
+
+    <form id="grading-form" onsubmit="submitGrades(event)">
+        <!-- Rubric categories will be filled later -->
+        {% for category, items in rubric.rubric.items() %}
+        <section>
+            <h2>{{ category }}: {{ items.total_points }} total points</h2>
+
+            <!-- Radio Buttons (Mutually Exclusive) -->
+            {% if 'radio' in items.criteria %}
+            <div>
+                <h3 style="color: white;">Choose one option:</h3>
+                {% for item in items.criteria.radio %}
+                <label>
+                    <input type="radio" name="{{ category }}-radio" value="{{ item.deduct }}" data-category="{{ category }}">
+                     - {{ item.deduct }} {{ item.label }} <em style="color: gray; font-weight: lighter;">({{ item.explanation }})</em>
+                </label><br>
+                {% endfor %}
+                <label>
+                    <p>Feedback:</p>
+                    <textarea class="rubric-feedback-radio" rows="2" cols="50" placeholder="Provide feedback for this section" data-category="{{ category }}-radio"></textarea>
+                </label><br>
+            </div>
+            {% endif %}
+
+            <!-- Checkboxes (Multiple Selections) -->
+            {% if 'checkbox' in items.criteria %}
+            <div>
+                <h3 style="color: white;">Choose any applicable options:</h3>
+                {% for item in items.criteria.checkbox %}
+                <label>
+                     <input type="checkbox" value="{{ item.deduct }}" data-category="{{ category }}">
+                     - {{ item.deduct }} {{ item.label }} <em style="color: gray; font-weight: lighter;">({{ item.explanation }})</em>
+                </label><br>
+                <label>
+                    <p>Feedback:</p>
+                    <textarea class="rubric-feedback" rows="2" cols="50" placeholder="Provide feedback" data-category="{{ category }}"></textarea>
+                </label><br>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </section>
+        {% endfor %}
+
+        <!-- Extra Deductions -->
+        <section>
+            <h2>Additional Deductions</h2>
+            <div id="extra-deduction-form">
+                <label>Deduct Extra Points:
+                    <input type="number" class="extra-points" value="0" min="0">
+                </label>
+                <label><p>Feedback for Extra Deduction:</p>
+                    <textarea class="extra-feedback" rows="2" cols="50" placeholder="Provide explanation for deduction"></textarea>
+                </label>
+                <div class="button-container">
+                    <button type="button" onclick="addExtraDeduction()" style="padding: 14px 20px; font-size: 0.9em; border-radius: 4px;">
+                        Add Deduction
+                    </button>
+                </div>
+            </div>
+            <div id="extra-deductions-container" style="margin-top: 20px"></div>
+        </section>
+
+        <section style="background-color: #504945; padding: 20px; border-radius: 8px; border: 1px solid #8ec07c;">
+            <h2 style="background-color: #458588; color: white; padding: 10px; margin: -20px -20px 20px -20px; border-top-left-radius: 8px; border-top-right-radius: 8px;">Score Summary</h2>
+            
+            <!-- Section for displaying deductions -->
+            <div id="deduction-details" style="margin-bottom: 20px;">
+                <h3 style="color: #E74C3C;">Deductions by Category:</h3>
+                <!-- This is where the deductions will be dynamically inserted -->
+            </div>
+
+            <!-- Display total deductions and current score -->
+            <p style="font-weight: bold; font-size: 1.2em; color: #d79921;">Total Deductions: <span id="total-deductions" style="font-weight: bold;">0</span></p>
+            <p style="font-weight: bold; font-size: 1.2em; color: #8ec07c;">Current Score: <span id="current-score" style="font-weight: bold;">{{ rubric.max_points }}</span> / {{ rubric.max_points }}</p>
+        </section>
+
+        <div class="button-container">
+            <button type="submit" onclick="submitGrades(event)">Submit Grades</button>
+
+            <button type="button" onclick="copyJsonToClipboard()" style="background-color: #8ec07c; color: white; padding: 14px 20px; font-size: 1.2em; border-radius: 4px; margin-left: 10px;">
+                Copy JSON to Clipboard
+            </button>
+        </div>
+
+        <!-- General Feedback Section -->
+        <h2>Overall Feedback</h2>
+        <textarea name="overall_feedback" id="overall_feedback" rows="4" cols="50" placeholder="Provide overall feedback"></textarea>
+
+    </form>
+
+    <script>
+        let totalDeductions = 0;
+        const maxPoints = {{ rubric.max_points }};  // Use max_points as the total available points
+        let rubricFeedback = {};
+        let extraDeductions = [];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const feedback = {{ submission.feedback | tojson }};  // Use the Jinja2-passed submission.feedback directly
+
+            if (feedback) {
+                prefillForm(feedback);  // Pre-fill the form with feedback data
+            }
+        });
+
+        function prefillForm(feedback) {
+            // Fill overall feedback
+            if (feedback.overall_feedback) {
+                document.getElementById('overall_feedback').value = feedback.overall_feedback;
+            }
+
+            // Fill rubric feedback (radio and checkbox)
+            if (feedback.rubric_feedback) {
+                for (const category in feedback.rubric_feedback) {
+                    const rubricItems = feedback.rubric_feedback[category];
+
+                    // Handle radio buttons
+                    if (rubricItems.radio) {
+                        const radioDeduction = rubricItems.radio.deduct;
+                        const radioFeedback = rubricItems.radio.feedback;
+
+                        // Find the radio input and check it
+                        const radioInput = document.querySelector(`input[type="radio"][data-category="${category}"][value="${radioDeduction}"]`);
+                        if (radioInput) {
+                            radioInput.checked = true;
+                        }
+
+                        // Find the feedback textarea and fill it
+                        const radioFeedbackTextarea = document.querySelector(`textarea[data-category="${category}-radio"]`);
+                        if (radioFeedbackTextarea) {
+                            radioFeedbackTextarea.value = radioFeedback;
+                        }
+                    }
+
+                    // Handle checkboxes
+                    if (rubricItems.checkbox) {
+                        rubricItems.checkbox.forEach(checkboxItem => {
+                            const checkboxDeduction = checkboxItem.deduct;
+                            const checkboxFeedback = checkboxItem.feedback;
+
+                            // Find the checkbox input and check it
+                            const checkboxInput = document.querySelector(`input[type="checkbox"][data-category="${category}"][value="${checkboxDeduction}"]`);
+                            if (checkboxInput) {
+                                checkboxInput.checked = true;
+                            }
+
+                            // Find the feedback textarea and fill it
+                            const checkboxFeedbackTextarea = document.querySelector(`textarea[data-category="${category}"]`);
+                            if (checkboxFeedbackTextarea) {
+                                checkboxFeedbackTextarea.value = checkboxFeedback;
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Fill extra deductions
+            if (feedback.extra_deductions) {
+                feedback.extra_deductions.forEach(deduction => {
+                    addExtraDeduction(deduction.points, deduction.feedback, false);  // Pre-fill extra deductions
+                });
+            }
+
+            // Update the total score and deductions in the UI
+            updateTotalScore();
+        }
+
+
+        function updateTotalScore() {
+            let totalDeductions = 0;
+
+            // Clear previous deduction details
+            const deductionDetails = document.getElementById("deduction-details");
+            deductionDetails.innerHTML = '';  // Clear any previous entries
+
+            // Create a container for all deduction details
+            let deductionHtml = '';
+
+
+
+
+            // Handle radio button deductions
+            document.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked').forEach(function(input) {
+                const category = input.getAttribute('data-category');
+                const deduction = parseInt(input.value);
+                const label = input.closest('label').childNodes[2].textContent.trim().split(" ").splice(2).join(" ");
+                const feedbackType = input.type === "radio" ? "-radio" : "";  // Determine if feedback is from a radio or checkbox
+                const feedback = document.querySelector(`textarea[data-category="${category}${feedbackType}"]`).value.trim();
+
+                totalDeductions += deduction;
+
+                deductionHtml += `
+                    <div style="margin-bottom: 10px;">
+                        <strong style="color: #d79921; font-weight: bold;">${category}:</strong>
+                        <p style="color: #8ec07c;margin-left: 20px;"><strong style="color: #fb4934;"> - ${deduction} points: </strong>${label}</p>
+                        <p style="color: #fe8019; font-weight: bold; margin-left: 20px;">Feedback: <span style="color: #8ec07c;">${feedback || "No feedback provided"}</span></p>
+                    </div>
+                `;
+            });
+
+
+            // Add extra deductions
+            extraDeductions.forEach(deduction => {
+                totalDeductions += deduction.points;
+                deductionHtml += `
+                    <div style="margin-bottom: 10px;">
+                        <strong style="color: #d79921; font-weight: bold;">Extra Deduction:</strong>
+                        <p style="color: #fb4934; margin-left: 20px;"><strong> - ${deduction.points} points</strong></p>
+                        <p style="color: #fe8019; font-weight: bold; margin-left: 20px;">Feedback: <span style="color: #8ec07c;">${deduction.feedback || "No feedback provided"}</span></p>
+                    </div>
+                `;
+            });
+
+            // Insert the section-wise deduction details into the DOM
+            deductionDetails.innerHTML = deductionHtml;
+
+            // Calculate the final score based on the max points
+            const finalScore = maxPoints - totalDeductions;
+
+            // Update the total deductions and current score in the UI
+
+            document.getElementById('total-deductions').innerText = totalDeductions;
+            document.getElementById('current-score').innerText = finalScore;
+        }
+
+        function addExtraDeduction(points = 0, feedback = '', isUserAction = true) {
+            const pointsInput = document.querySelector('#extra-deduction-form .extra-points');
+            const feedbackInput = document.querySelector('#extra-deduction-form .extra-feedback');
+
+            // If no points or feedback provided, use entered values
+            points = points || parseInt(pointsInput.value);
+            feedback = feedback || feedbackInput.value.trim();
+
+            if (isNaN(points) || points < 1) {
+                alert('Please enter a valid number of points (must be 1 or greater).');
+                return;
+            }
+
+            if (feedback === '') {
+                alert('Please provide feedback for the extra deduction.');
+                return;
+            }
+
+            extraDeductions.push({ points, feedback });
+
+            // Append the deduction to the extra deductions container
+            const container = document.getElementById('extra-deductions-container');
+            const newDeduction = document.createElement('div');
+            newDeduction.classList.add('extra-deduction');
+            newDeduction.innerHTML = `
+                <div class="deduction-box" style="border: 1px solid #8ec07c; padding: 20px; border-radius: 6px; background-color: #3c3836; margin-bottom: 15px;">
+                    <p style="margin: 0 0 8px; font-size: 0.9em;"><strong style="color: #d79921;">- ${points} points</strong></p>
+                    <p style="color: #8ec07c; font-size: 0.85em; margin-bottom: 8px;">${feedback}</p>
+                    <div class="button-container" style="text-align: right;">
+                        <button class="button" type="button" onclick="removeExtraDeduction(this)" style="padding: 6px 12px; font-size: 0.85em; border-radius: 3px; background-color: #d79921; color: white;">
+                            Remove Deduction
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(newDeduction);
+            pointsInput.value = 0;
+            feedbackInput.value = '';
+
+            if (isUserAction) {
+                updateTotalScore();  // Only update score for user actions, not prefill
+            }
+        }
+
+        // Function to remove extra deduction
+        function removeExtraDeduction(button) {
+            const deductionDiv = button.closest('.extra-deduction');
+            const index = Array.from(document.querySelectorAll('#extra-deductions-container .extra-deduction')).indexOf(deductionDiv);
+            extraDeductions.splice(index, 1);
+            deductionDiv.remove();
+            updateTotalScore();
+        }
+
+        // Function to adjust score when checkboxes are checked/unchecked
+        function adjustScore(checkbox) {
+            const deduction = parseInt(checkbox.value);  // Deduction value from checkbox
+            const category = checkbox.dataset.category;
+            const index = checkbox.dataset.index;
+
+            if (!rubricFeedback[category]) {
+                rubricFeedback[category] = {};  // Initialize category if it doesn't exist
+            }
+
+            // Find corresponding feedback textarea
+            const feedbackTextarea = document.querySelector(`textarea[data-category="${category}"][data-index="${index}"]`);
+            const explanation = checkbox.nextSibling.textContent.trim();  // Explanation next to checkbox
+
+            if (checkbox.checked) {
+                totalDeductions += deduction;
+                // Set the deduction as key and feedback (including explanation) as value
+                rubricFeedback[category][deduction] = {
+                    explanation: explanation,
+                    feedback: feedbackTextarea ? feedbackTextarea.value.trim() : ''
+                };
+            } else {
+                totalDeductions -= deduction;
+                // Remove the deduction if unchecked
+                delete rubricFeedback[category][deduction];
+            }
+
+            updateTotalScore();
+        }
+
+        function generateFormJsonPayload() {
+
+            const form = document.querySelector('#grading-form');  // Get the form element
+            let rubricFeedback = {};  // Object to store all rubric feedback
+
+            // Handle radio button deductions
+            document.querySelectorAll('input[type="radio"]:checked').forEach(function(radio) {
+                const category = radio.getAttribute('data-category');
+                const deduct = parseInt(radio.value);
+                const label = radio.closest('label').childNodes[2].textContent.trim().split(" ").splice(2).join(" ");
+                const feedback = document.querySelector(`textarea[data-category="${category}-radio"]`).value.trim();
+
+                if (!rubricFeedback[category]) {
+                    rubricFeedback[category] = {};
+                }
+
+                rubricFeedback[category].radio = {
+                    deduct: deduct,
+                    label: label,  // Include the label
+                    feedback: feedback
+                };
+            });
+
+            // Handle checkbox deductions
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach(function(checkbox) {
+                const category = checkbox.getAttribute('data-category');
+                const deduct = parseInt(checkbox.value);
+                const label = checkbox.closest('label').childNodes[2].textContent.trim().split(" ").splice(2).join(" ");
+                const feedback = document.querySelector(`textarea[data-category="${category}"]`).value.trim();
+
+                if (!rubricFeedback[category]) {
+                    rubricFeedback[category] = {};
+                }
+
+                if (!rubricFeedback[category].checkbox) {
+                    rubricFeedback[category].checkbox = [];
+                }
+
+                rubricFeedback[category].checkbox.push({
+                    deduct: deduct,
+                    label: label,  // Include the label
+                    feedback: feedback
+                });
+            });
+
+            // Collect extra deductions
+            const extraDeduction = extraDeductions.map(deduction => ({
+                points: deduction.points,
+                feedback: deduction.feedback
+            }));
+
+            // Collect overall feedback
+            const overallFeedback = document.getElementById('overall_feedback').value.trim();
+
+            // Calculate final grade based on deductions
+            let totalDeductions = 0;
+
+            Object.keys(rubricFeedback).forEach(category => {
+                if (rubricFeedback[category].radio) {
+                    totalDeductions += rubricFeedback[category].radio.deduct;
+                }
+                if (rubricFeedback[category].checkbox) {
+                    rubricFeedback[category].checkbox.forEach(item => {
+                        totalDeductions += item.deduct;
+                    });
+                }
+            });
+
+            extraDeduction.forEach(deduction => {
+                totalDeductions += deduction.points;
+            });
+
+            const finalGrade = maxPoints - totalDeductions;
+
+            // Create the payload with the required structure
+            const jsonPayload = {
+                grade: finalGrade,  // Final grade after deductions
+                feedback: {
+                    rubric_feedback: rubricFeedback,  // Rubric feedback for radio and checkbox
+                    extra_deductions: extraDeduction,  // Any extra deductions
+                    overall_feedback: overallFeedback  // Overall feedback
+                }
+            };
+
+            console.log('Payload:', jsonPayload);
+            return jsonPayload;
+        }
+
+        function submitGrades(event) {
+            event.preventDefault();
+            const jsonPayload = generateFormJsonPayload();
+
+            fetch(`/api/submissions/feedback?userid={{ user_id }}&assignment_number={{ assignment_number }}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonPayload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Grade and feedback submitted successfully');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the grade and feedback.');
+            });
+        }
+
+
+
+        function convertJsonToMessage(jsonPayload, maxLength = 50) {
+            let message = `Grade: ${jsonPayload.grade}\n---------------------\n`;
+
+            // Function to handle line breaks for long feedback
+            function addLineBreaks(text, maxLength) {
+                const words = text.split(' ');
+                let formattedText = '';
+                let line = '';
+
+                words.forEach(word => {
+                    if ((line + word).length > maxLength) {
+                        formattedText += line.trim() + '\n\t\t';  // Line break and indent for new line
+                        line = '';
+                    }
+                    line += word + ' ';
+                });
+
+                return formattedText + line.trim();
+            }
+
+            // Handle rubric feedback
+            if (jsonPayload.feedback && jsonPayload.feedback.rubric_feedback) {
+                Object.keys(jsonPayload.feedback.rubric_feedback).forEach(category => {
+                    const rubricItem = jsonPayload.feedback.rubric_feedback[category];
+                    message += `${category}:\n`;
+
+                    if (Array.isArray(rubricItem)) {
+                        rubricItem.forEach(item => {
+                            message += `\t - ${item.deduct} : ${item.label}\n`;
+                            message += `\t\t - ${addLineBreaks(item.feedback, maxLength)}\n`;
+                        });
+                    } else if (rubricItem.radio) {
+                        message += `\t - ${rubricItem.radio.deduct} : ${rubricItem.radio.label}\n`;
+                        message += `\t\t - ${addLineBreaks(rubricItem.radio.feedback, maxLength)}\n`;
+                    }
+                });
+            }
+
+            // Handle extra deductions
+            if (jsonPayload.feedback && jsonPayload.feedback.extra_deductions && jsonPayload.feedback.extra_deductions.length > 0) {
+                message += `---------------------\n`;
+                jsonPayload.feedback.extra_deductions.forEach(deduction => {
+                    message += ` - ${deduction.points} : ${addLineBreaks(deduction.feedback, maxLength)}\n`;
+                });
+            }
+
+            // Handle overall feedback
+            if (jsonPayload.feedback && jsonPayload.feedback.overall_feedback) {
+                message += `---------------------\n`;
+                message += `Feedback:\n`;
+                message += `\t - ${addLineBreaks(jsonPayload.feedback.overall_feedback, maxLength)}\n`;
+            }
+
+            return message;
+        }
+
+
+        function copyJsonToClipboard() {
+            window.focus();
+            const jsonPayload = generateFormJsonPayload();
+
+            // Fetch the server version of the feedback
+            fetch(`/api/submissions/feedback?userid={{ user_id }}&assignment_number={{ assignment_number }}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch server data.');
+                    }
+                    return response.json();
+                })
+                .then(serverData => {
+                    // Check if the local JSON matches the server JSON
+                    const serverJson = JSON.stringify(serverData, null);
+                    const localJson = JSON.stringify(jsonPayload, null);
+
+                    if (localJson === serverJson) {
+
+                        navigator.clipboard.writeText(convertJsonToMessage(jsonPayload)).then(() => {
+                            console.log('JSON payload copied to clipboard!');
+                        }).catch(err => {
+                            console.error('Failed to copy JSON to clipboard: ', err);
+                        });
+                    } else {
+                        alert('Please submit the grades first before copying the JSON.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching server data: ', err);
+                    alert('Failed to fetch server data for comparison.');
+                });
+        }
+
+        function openSubmission(){
+            const currentUrl = window.location.href; // Get the current URL
+            const submissionUrl = currentUrl + "/submission"; // Append /submission to the URL
+            window.open(submissionUrl, '_blank'); // Open in a new tab
+        }
+    </script>
+</body>
+</html>
+

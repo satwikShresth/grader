@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ title }}</title>
+    <!-- Include Fira Code for general text and code blocks -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/nav.css">
+    <script>
+        function showSection(section) {
+            document.querySelectorAll('.content-block').forEach(el => el.classList.add('hidden'));
+            document.getElementById(section).classList.remove('hidden');
+        }
+
+        function showFile(fileId) {
+            document.querySelectorAll('.file-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(fileId).classList.remove('hidden');
+        }
+
+        function showResult(resultId) {
+            document.querySelectorAll('.result-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(resultId).classList.remove('hidden');
+        }
+
+        function forceRerender() {
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('force_rerender', 'true');
+            window.location.search = urlParams.toString();
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="/">Home Page</a>
+        <a href="/grade/assignment">Grade Center</a>
+    </div>
+
+    <h1>{{ title }}</h1>
+
+
+    <!-- Dropdown to switch between Submission Code and Test Results -->
+
+    <div class="flex-container">
+    <div>
+    <label for="section-select">View:</label>
+    <select id="section-select" onchange="showSection(this.value)">
+        <option value="code-section">Submission Code</option>
+        <option value="results-section">Test Results</option>
+    </select>
+    </div>
+
+    <!-- Re-Render Button -->
+    <button class="rerender-button" onclick="forceRerender()" style="background-color: #EE0707;">Re-Render</button>
+    </div>
+
+    <!-- Submission Code Section -->
+    <div id="code-section" class="content-block">
+        <h2>Submission Code</h2>
+        <label for="file-select">Select File:</label>
+        <select id="file-select" onchange="showFile(this.value)">
+            {% for tab in tabs %}
+                {% if tab.type == 'code' %}
+                    <option value="{{ tab.id }}">{{ tab.title }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+        {% for tab in tabs %}
+            {% if tab.type == 'code' %}
+            <div id="{{ tab.id }}" class="file-content hidden">
+                <h3>{{ tab.title }}</h3>
+                <div class="code-block">
+                    {{ tab.content | safe }}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- Test Results Section -->
+    <div id="results-section" class="content-block hidden">
+        <h2>Test Results</h2>
+        <label for="result-select">Select Test Result:</label>
+        <select id="result-select" onchange="showResult(this.value)">
+            {% for tab in tabs %}
+                {% if tab.type == 'output' %}
+                    <option value="{{ tab.id }}">{{ tab.title }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+
+        {% for tab in tabs %}
+            {% if tab.type == 'output' %}
+            <div id="{{ tab.id }}" class="result-content hidden">
+                <h3>{{ tab.title }}</h3>
+                <div class="code-block">
+                    <h4>Output:</h4>
+                    <pre>{{ tab.content | safe }}</pre>
+                    {% if tab.error %}
+                    <h4 class="error">Errors:</h4>
+                    <pre>{{ tab.error | safe }}</pre>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+
+    <script>
+        document.querySelector('.file-content').classList.remove('hidden');
+        document.querySelector('.result-content').classList.remove('hidden');
+    </script>
+</body>
+</html>
+

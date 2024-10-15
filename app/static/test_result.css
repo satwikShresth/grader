@@ -1,0 +1,160 @@
+body { 
+    font-family: 'Fira Code', monospace; 
+    background-color: #3c3836; 
+    color: #f8f8f8; 
+    margin: 0; 
+    padding: 20px; 
+}
+
+select { 
+    font-size: 16px; 
+    padding: 10px; 
+    margin: 10px 0; 
+    color: white; 
+    background-color: #458588; 
+    border: none; 
+    border-radius: 8px; /* Rounded corners for dropdown */ 
+    cursor: pointer; 
+    appearance: none;
+}
+
+/* Style for content block with rounded corners */
+.content-block { 
+    background-color: #272822; 
+    padding: 20px; 
+    border: 1px solid #458588; 
+    border-radius: 12px; /* Rounded corners for content block */
+    color: #f8f8f8; 
+    min-height: 400px; 
+    margin-top: 10px;
+}
+
+/* Code block styling with Fira Code */
+.code-block { 
+    background-color: #272822; 
+    color: #f8f8f8; 
+    padding: 20px; /* Increased padding */
+    border-radius: 8px; 
+    font-family: 'Fira Code', monospace; /* Apply Fira Code for code */
+    min-height: 500px; /* Make the box taller */
+}
+
+.code-block code { font-family: 'Fira Code', monospace; } /* Fira Code for inline code */
+
+/* Headings */
+h1, h2, h3 { color: #d79921; font-family: 'Fira Code', monospace; }
+p { color: #8ec07c; }
+
+.hidden { display: none; } /* Hide elements initially */
+.error { color: #cc241d; font-weight: bold; font-family: 'Fira Code', monospace; }
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* Adjust button margin to align with the select element */
+.rerender-button {
+    margin-left: 20px; /* Optional: Adjust spacing between the button and dropdown */
+    padding: 10px 20px;
+    font-size: 16px;
+    color: white;
+    background-color: #cc241d;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'Fira Code', monospace;
+}
+/* General button styles */
+button {
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    font-family: 'Fira Code', monospace;
+}
+
+/* Hover state */
+button:hover {
+    background-color: #b0251a; /* Darker color on hover */
+    transform: scale(1.05); /* Slightly scale up */
+}
+
+/* Active/Selected state (when clicked) */
+button:active {
+    background-color: #a21d15; /* Even darker color on click */
+    transform: scale(0.95); /* Slightly scale down on click */
+}
+
+/* Focus state (when selected via keyboard) */
+button:focus {
+    outline: none; /* Remove default outline */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Add shadow for focus */
+}
+
+/* Specific style for the Re-Render button */
+.rerender-button {
+    font-size: 16px;
+    padding: 10px 20px;
+    margin: 20px 0;
+    color: white;
+    background-color: #cc241d;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Apply the hover and active styles for dropdown (select) as well */
+select {
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+}
+
+select:hover {
+    background-color: #387980; /* Change background on hover */
+}
+
+select:focus {
+    outline: none; /* Remove default outline */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Add shadow on focus */
+}
+.controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px; /* Optional: Spacing between the dropdown and button */
+}
+
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Ensure both are vertically aligned */
+    width: 100%; /* Ensure the container spans the full width */
+    box-sizing: border-box; /* Prevent padding/margin issues */
+}
+
+select, .rerender-button {
+    font-size: 16px;
+    padding: 10px 20px;
+    height: 45px; /* Ensure both have the same height */
+    background-color: #458588;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-family: 'Fira Code', monospace;
+    box-sizing: border-box; /* Ensure padding doesn't affect the height/width */
+}
+/* Additional hover and active states for both */
+select:hover, .rerender-button:hover {
+    background-color: #387980; /* Slightly darker color on hover */
+}
+
+select:focus, .rerender-button:focus {
+    outline: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Focus shadow */
+}
+
+.rerender-button:active, select:active {
+    transform: scale(0.95); /* Slight shrink effect on click */
+}

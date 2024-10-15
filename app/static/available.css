@@ -1,0 +1,28 @@
+/* Gruvbox Color Palette for available */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #3c3836;
+    color: #8ec07c;
+    padding: 20px;
+}
+
+h1 {
+    color: #d79921;
+}
+
+ul {
+    list-style-type: none;
+}
+
+li {
+    padding: 10px 0;
+}
+
+a {
+    color: #458588;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}

@@ -1,0 +1,162 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    margin: 10px 0;
+}
+
+a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+#drop-area {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+#drop-area.highlight {
+    border-color: #28a745;
+}
+
+#fileElem {
+    display: none;
+}
+
+#file-info {
+    margin-top: 20px;
+    color: #333;
+}
+
+button {
+    padding: 5px 10px;
+    background-color: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+button:hover {
+    background-color: #d9534f;
+}
+
+#file-list {
+    margin-top: 20px;
+}
+
+#file-list li {
+    font-size: 16px;
+}
+
+#file-list li button {
+    margin-left: 15px;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #3c3836; /* Gruvbox gray */
+    padding: 20px;
+}
+
+/* Heading styles */
+h1 {
+    text-align: center;
+    color: #458588; /* Gruvbox blue */
+}
+
+/* List styles */
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+ul li {
+    margin: 10px 0;
+}
+
+/* Anchor/link styles */
+a {
+    text-decoration: none;
+    color: #458588; /* Gruvbox blue */
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Drop area styles */
+#drop-area {
+    border: 2px dashed #8ec07c; /* Gruvbox green */
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+#drop-area.highlight {
+    border-color: #8ec07c; /* Gruvbox green */
+}
+
+/* Hide file input */
+#fileElem {
+    display: none;
+}
+
+/* File info display */
+#file-info {
+    margin-top: 20px;
+    color: #458588; /* Gruvbox blue */
+}
+
+/* Button styles */
+button {
+    padding: 5px 10px;
+    background-color: #cc241d; /* Gruvbox red */
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+button:hover {
+    background-color: #cc241d; /* Gruvbox red hover */
+}
+
+/* File list styles */
+#file-list {
+    margin-top: 20px;
+}
+
+#file-list li {
+    font-size: 16px;
+    color: #8ec07c; /* Gruvbox green */
+}
+
+#file-list li button {
+    margin-left: 15px;
+    background-color: #cc241d; /* Gruvbox red for delete buttons */
+    color: white;
+}

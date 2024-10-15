@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/center.css">
+    <link rel="stylesheet" href="/static/nav.css">
+    <title>Assignment Grades</title>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/">Home Page</a>
+        <a href="/grade/assignment">Grade Center</a>
+    </div>
+
+    <h1>Assignment {{ assignment_number }} Grades</h1>
+
+    <!-- Group tabs above student cards, aligned to the right -->
+    <div class="group-tabs-container">
+        <div class="group-tabs">
+            Group
+            {% for group in groups %}
+            <button class="group-tab" data-group="{{ group }}" onclick="toggleGroup('{{ group }}')">
+                {{ group }}
+            </button>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Loop through students and show only those who have submitted -->
+    {% for student in students %}
+        {% if student.submission_date %}
+        <!-- Make the whole card clickable, leading to the form -->
+        <a href="/grade/assignment/{{ assignment_number }}/{{ student.UserID }}">
+            <div class="student-card" data-group="{{ student.group }}">
+                <table>
+                    <tr>
+                        <th>User ID:</th>
+                        <td>{{ student.UserID }}</td>
+                    </tr>
+                    <tr>
+                        <th>Name:</th>
+                        <td>{{ student.Name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Submission Date:</th>
+                        <td>{{ student.submission_date }}</td>
+                    </tr>
+                    <tr>
+                        <th>Grade:</th>
+                        <td>{% if student.grade %}{{ student.grade }}{% else %}---{% endif %}</td>
+                    </tr>
+                </table>
+            </div>
+        </a>
+        {% endif %}
+    {% endfor %}
+
+    <script>
+        // Function to toggle group visibility
+        function toggleGroup(group) {
+            const groupCards = document.querySelectorAll(`.student-card[data-group="${group}"]`);
+            const groupButton = document.querySelector(`button[data-group="${group}"]`);
+
+            // Toggle visibility of each student's card for the group
+            groupCards.forEach(card => {
+                if (card.classList.contains('hidden')) {
+                    card.classList.remove('hidden');
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Toggle active/inactive state of the button
+            groupButton.classList.toggle('inactive');
+        }
+    </script>
+</body>
+</html>
