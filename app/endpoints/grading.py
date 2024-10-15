@@ -13,7 +13,7 @@ from cachetools import TTLCache
 
 
 router = APIRouter(tags=["grading"])
-templates = Jinja2Templates(directory=BASE_DIR / "templates" / "grade")
+templates = Jinja2Templates(directory=BASE_DIR / "templates")
 html_cache = TTLCache(maxsize=100, ttl=300)  # Cache expires after 5 minutes
 
 
@@ -31,30 +31,23 @@ def load_grading_data(assignment_number):
 
 @router.get("/assignment/{assignment_number}", response_class=HTMLResponse)
 async def get_assignment_form(request: Request, assignment_number: int, db: Session = Depends(get_db)):
-    # Get all students
     students = db.query(Student).all()
 
-    # Get all submissions for the assignment
     submissions = db.query(Submission).filter(
         Submission.assignment_id == assignment_number).all()
 
-    # Map submissions by student_id
     submissions_map = {
         submission.student_id: submission for submission in submissions
     }
 
-    # List to store student data and set to store groups
     student_data = []
     groups = set()
 
     for student in students:
-        # Extract group information from the relationship with Group
         group_number = student.group.group_number if student.group else "Ungrouped"
 
-        # Add group to the set of groups
         groups.add(group_number)
 
-        # Prepare student data
         student_info = {
             "UserID": student.UserID,
             "Name": student.Name,
@@ -71,7 +64,8 @@ async def get_assignment_form(request: Request, assignment_number: int, db: Sess
             "request": request,
             "assignment_number": assignment_number,
             "students": student_data,
-            "groups": sorted(groups)  # Pass groups to the template
+            "groups": sorted(groups),  # Pass groups to the template
+            "username": request.state.user,
         }
     )
 
@@ -115,7 +109,8 @@ async def grade_assignment_form(
             "student": student,
             "rubric": rubric,  # Ensure rubric is passed to the template
             "submission": submission_data,
-            "user_id": user_id
+            "user_id": user_id,
+            "username": request.state.user,
         }
     )
 
@@ -181,7 +176,8 @@ async def grade_assignment_form(
             "student": student,
             "rubric": rubric,
             "submission": submission,
-            "tabs": tabs
+            "tabs": tabs,
+            "username": request.state.user,
         }
         html_content = templates.get_template(
             "test_result.html").render(context)
@@ -199,6 +195,7 @@ async def get_assignments(request: Request, db: Session = Depends(get_db)):
         "available.html",
         {
             "request": request,
-            "assignments": assignments
+            "assignments": assignments,
+            "username": request.state.user,
         }
     )

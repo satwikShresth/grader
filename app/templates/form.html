@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <title>Assignment Grading Form</title>
     <link rel="stylesheet" href="/static/form.css">
-    <link rel="stylesheet" href="/static/nav.css">
 </head>
 <body>
 
-    <div class="navbar">
-        <a href="/">Home Page</a>
-        <a href="/grade/assignment">Grade Center</a>
-    </div>
+    {% include 'navbar.html' %}  <!-- Navbar component -->
 
     <h1>Grading for Assignment {{ assignment_number }}</h1>
 
@@ -99,7 +95,7 @@
         <div class="button-container">
             <button type="submit" onclick="submitGrades(event)">Submit Grades</button>
 
-            <button type="button" onclick="copyJsonToClipboard()" style="background-color: #8ec07c; color: white; padding: 14px 20px; font-size: 1.2em; border-radius: 4px; margin-left: 10px;">
+            <button id="copyBtn" type="button" style="background-color: #8ec07c; color: white; padding: 14px 20px; font-size: 1.2em; border-radius: 4px; margin-left: 10px;">
                 Copy JSON to Clipboard
             </button>
         </div>
@@ -115,6 +111,7 @@
         const maxPoints = {{ rubric.max_points }};  // Use max_points as the total available points
         let rubricFeedback = {};
         let extraDeductions = [];
+        const grader = "{{ username }}";
 
         document.addEventListener('DOMContentLoaded', function () {
             const feedback = {{ submission.feedback | tojson }};  // Use the Jinja2-passed submission.feedback directly
@@ -408,7 +405,8 @@
                 feedback: {
                     rubric_feedback: rubricFeedback,  // Rubric feedback for radio and checkbox
                     extra_deductions: extraDeduction,  // Any extra deductions
-                    overall_feedback: overallFeedback  // Overall feedback
+                    overall_feedback: overallFeedback,  // Overall feedback
+                    grader: grader,
                 }
             };
 
@@ -497,9 +495,14 @@
                 message += `\t - ${addLineBreaks(jsonPayload.feedback.overall_feedback, maxLength)}\n`;
             }
 
+            // Add the grader's name at the end
+            if (jsonPayload.feedback.grader) {
+                message += `---------------------\n`;
+                message += `- ${jsonPayload.feedback.grader}`;
+            }
+
             return message;
         }
-
 
         function copyJsonToClipboard() {
             window.focus();
@@ -519,8 +522,9 @@
                     const localJson = JSON.stringify(jsonPayload, null);
 
                     if (localJson === serverJson) {
-
-                        navigator.clipboard.writeText(convertJsonToMessage(jsonPayload)).then(() => {
+                        const feedbackString = convertJsonToMessage(jsonPayload);
+                        console.log(feedbackString);
+                        navigator.clipboard.writeText(feedbackString).then(() => {
                             console.log('JSON payload copied to clipboard!');
                         }).catch(err => {
                             console.error('Failed to copy JSON to clipboard: ', err);
@@ -535,8 +539,10 @@
                 });
         }
 
+        document.getElementById('copyBtn').addEventListener('click', copyJsonToClipboard);
+
         function openSubmission(){
-            const currentUrl = window.location.href; // Get the current URL
+            const currentUrl = window.location.href;
             const submissionUrl = currentUrl + "/submission"; // Append /submission to the URL
             window.open(submissionUrl, '_blank'); // Open in a new tab
         }

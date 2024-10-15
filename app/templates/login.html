@@ -19,17 +19,7 @@
 
         <a href="/logout" class="logout-link">Logout</a>
 
-        <p id="cookie-status"></p>
     </div>
-
-    <script>
-        function checkCookie() {
-            const cookieStatusElement = document.getElementById("cookie-status");
-            cookieStatusElement.innerHTML = document.cookie.includes("session=") ? "Session cookie is set." : "No session cookie found.";
-        }
-
-        window.onload = checkCookie;
-    </script>
 </body>
 </html>
 

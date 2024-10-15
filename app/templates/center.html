@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/center.css">
-    <link rel="stylesheet" href="/static/nav.css">
     <title>Assignment Grades</title>
 </head>
 <body>
-    <div class="navbar">
-        <a href="/">Home Page</a>
-        <a href="/grade/assignment">Grade Center</a>
-    </div>
+    {% include 'navbar.html' %}  <!-- Navbar component -->
 
     <h1>Assignment {{ assignment_number }} Grades</h1>
 

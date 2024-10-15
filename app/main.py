@@ -36,7 +36,8 @@ async def get_current_user(request: Request):
     user = request.session.get('user')
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
-    return user
+
+    request.state.user = user
 
 
 app.add_middleware(SessionMiddleware, secret_key=str(uuid4()))
@@ -50,7 +51,6 @@ app.include_router(crud.router, prefix="/api")
 app.include_router(session.router)
 
 
-# Exception handler to redirect unauthorized access to /login
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request, exc):
     if exc.status_code == status.HTTP_401_UNAUTHORIZED:
@@ -65,8 +65,8 @@ async def http_exception_handler(request, exc):
     )
 
 
-@app.get("/", response_class=HTMLResponse)
-async def read_homepage(request: Request, user: str = Depends(get_current_user)):
+@app.get("/", response_class=HTMLResponse, dependencies=[Depends(get_current_user)])
+async def read_homepage(request: Request):
     return templates.TemplateResponse(
         "homepage.html",
         {
@@ -74,5 +74,6 @@ async def read_homepage(request: Request, user: str = Depends(get_current_user))
             "title": "CS: 380 Grading Tool",
             "gradebookStatus": False,
             "studentDatabaseStatus": True,
+            "username": request.state.user,
         },
     )
