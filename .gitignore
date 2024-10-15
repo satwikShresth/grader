@@ -11,3 +11,4 @@ unzipped/
 database/
 # Virtual environments
 .venv
+.DS_Store
