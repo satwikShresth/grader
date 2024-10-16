@@ -2,8 +2,8 @@
 <html>
 <head>
     <title>{{ title }}</title>
-    <!-- Include Fira Code for general text and code blocks -->
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/test_result.css">
     <script>
         function showSection(section) {
             document.querySelectorAll('.content-block').forEach(el => el.classList.add('hidden'));
@@ -29,13 +29,9 @@
 </head>
 <body>
 
-    <!-- Navbar -->
-    {% include '../navbar.html' %}  <!-- Navbar component -->
+    {% include 'navbar.html' %}
 
     <h1>{{ title }}</h1>
-
-
-    <!-- Dropdown to switch between Submission Code and Test Results -->
 
     <div class="flex-container">
     <div>

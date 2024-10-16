@@ -101,7 +101,7 @@ class Organizer:
                 student_id=student.UserID,
                 assignment_id=self.assignment_id,
                 submission_date=submission_date,
-                feedback=["Pending"],
+                feedback=[],
                 grade=0.0,
                 file_path=str(file_path.parent)
             )

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.models import Assignment, Submission, Student, Group
-from app.database import SessionLocal, get_db
+from app.database import get_db
 from .schemas import AssignmentCreate, SubmissionCreate, StudentCreate, GroupCreate, AssignmentUpdate, SubmissionUpdate, SubmissionUpdateGradeFeedback
 
 from typing import List

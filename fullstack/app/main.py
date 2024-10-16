@@ -19,11 +19,8 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 
 logger = logging.getLogger('uvicorn.error')
 
-db_path = Path(DATABASE_URL.split("///")[-1])
-
 try:
     Base.metadata.create_all(bind=engine)
-    logger.info(f"Database created at {db_path}")
 except SQLAlchemyError as e:
     logger.error(f"Error creating database: {e}")
     raise HTTPException(
@@ -43,10 +40,19 @@ async def get_current_user(request: Request):
 app.add_middleware(SessionMiddleware, secret_key="abc123")
 templates = Jinja2Templates(directory=TEMPLATES)
 app.mount("/static", StaticFiles(directory=STATIC), name="static")
-app.include_router(upload.router, prefix="/upload",
-                   dependencies=[Depends(get_current_user)])
-app.include_router(grading.router, prefix="/grade",
-                   dependencies=[Depends(get_current_user)])
+
+app.include_router(
+    upload.router,
+    prefix="/upload",
+    dependencies=[Depends(get_current_user)]
+)
+
+app.include_router(
+    grading.router,
+    prefix="/grade",
+    dependencies=[Depends(get_current_user)]
+)
+
 app.include_router(crud.router, prefix="/api")
 app.include_router(session.router)
 
@@ -58,8 +64,10 @@ async def http_exception_handler(request, exc):
     return templates.TemplateResponse(
         'error.html',
         {
-            'request': request,
-            'detail': exc.detail
+            "request": request,
+            "detail": exc.detail,
+            "status_code": exc.status_code,
+            "headers": exc.headers if exc.headers else "No headers",
         },
         status_code=exc.status_code
     )

@@ -134,6 +134,7 @@ dependencies = [
     { name = "fastapi", extra = ["all", "standard"] },
     { name = "fastapi-sessions" },
     { name = "numpy" },
+    { name = "psycopg2" },
     { name = "pygments" },
     { name = "sqlalchemy" },
     { name = "sqlite-utils" },
@@ -149,6 +150,7 @@ requires-dist = [
     { name = "fastapi", extras = ["all", "standard"], specifier = ">=0.115.0" },
     { name = "fastapi-sessions", specifier = ">=0.3.2" },
     { name = "numpy", specifier = ">=2.1.2" },
+    { name = "psycopg2", specifier = ">=2.9.9" },
     { name = "pygments", specifier = ">=2.18.0" },
     { name = "sqlalchemy", specifier = ">=2.0.35" },
     { name = "sqlite-utils", specifier = ">=3.37" },
@@ -498,6 +500,16 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/96/2d/02d4312c973c6050a18b314a5ad0b3210edb65a906f868e31c111dede4a6/pluggy-1.5.0.tar.gz", hash = "sha256:2cffa88e94fdc978c4c574f15f9e59b7f4201d439195c3715ca9e2486f1d0cf1", size = 67955 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/88/5f/e351af9a41f866ac3f1fac4ca0613908d9a41741cfcf2228f4ad853b697d/pluggy-1.5.0-py3-none-any.whl", hash = "sha256:44e1ad92c8ca002de6377e165f3e0f1be63266ab4d554740532335b9d75ea669", size = 20556 },
+]
+
+[[package]]
+name = "psycopg2"
+version = "2.9.9"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c9/5e/dc6acaf46d78979d6b03458b7a1618a68e152a6776fce95daac5e0f0301b/psycopg2-2.9.9.tar.gz", hash = "sha256:d1454bde93fb1e224166811694d600e746430c006fbb031ea06ecc2ea41bf156", size = 384926 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/13/13/f74ffe6b6f58822e807c70391dc5679a53feb92ce119ccb8a6546c3fb893/psycopg2-2.9.9-cp312-cp312-win32.whl", hash = "sha256:d735786acc7dd25815e89cc4ad529a43af779db2e25aa7c626de864127e5a024", size = 1024634 },
+    { url = "https://files.pythonhosted.org/packages/58/4b/c4a26e191882b60150bfcb639e416524ae7f8249ab7ee854fb5247f16c40/psycopg2-2.9.9-cp312-cp312-win_amd64.whl", hash = "sha256:a7653d00b732afb6fc597e29c50ad28087dcb4fbfb28e86092277a559ae4e693", size = 1163789 },
 ]
 
 [[package]]
