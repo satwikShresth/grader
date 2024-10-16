@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Side by Side Templates</title>
+    <style>
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .pane {
+            flex: 1;
+            border: 1px solid #ccc;
+            overflow: auto;
+        }
+
+        .resizer {
+            width: 5px;
+            cursor: ew-resize;
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pane">
+            {% include 'form.html' %}
+        </div>
+        <div class="resizer"></div>
+        <div class="pane">
+            {% include 'test_result.html' %}
+        </div>
+    </div>
+
+    <script>
+        const resizer = document.querySelector('.resizer');
+        const leftPane = resizer.previousElementSibling;
+        const rightPane = resizer.nextElementSibling;
+
+        let isResizing = false;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'ew-resize';
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+
+            // Calculate new width for the left pane based on mouse movement
+            const containerOffsetLeft = leftPane.parentNode.getBoundingClientRect().left;
+            const newLeftPaneWidth = e.clientX - containerOffsetLeft;
+
+            // Update left pane width and adjust the right pane accordingly
+            leftPane.style.width = `${newLeftPaneWidth}px`;
+            rightPane.style.width = `calc(100% - ${newLeftPaneWidth}px - 5px)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isResizing = false;
+            document.body.style.cursor = 'default';
+        });
+    </script>
+</body>
+</html>
