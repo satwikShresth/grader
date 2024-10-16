@@ -13,6 +13,7 @@ The **CS: 380 Grading Tool** is designed to streamline the grading process for a
 
 1. **Install Dependencies**:
    ```bash
+   cd fullstack
    pip install uv
    uv sync
    ```
@@ -32,12 +33,7 @@ The **CS: 380 Grading Tool** is designed to streamline the grading process for a
 
 1. **Build the Docker Image**:
    ```bash
-   docker build -t grading-tool:latest .
-   ```
-
-2. **Run the Docker Container**:
-   ```bash
-   docker run -d -p 8000:8000 grading-tool:latest
+   docker compose up --build
    ```
 
 Access the app at `http://localhost:8000`.
