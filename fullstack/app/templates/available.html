@@ -5,21 +5,99 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Assignments</title>
     <link rel="stylesheet" href="/static/available.css">
+    <style>
+        .assignments-container {
+            width: 100%;
+            max-width: 600px; /* Limiting the max-width for better layout */
+            margin: 0 auto;
+        }
+
+        /* Assignment card styles */
+        .assignment-card {
+            background-color: #504945;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        /* Hover effect for the card */
+        .assignment-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Table layout inside each card */
+        .assignment-card table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        /* Table header styles */
+        .assignment-card th {
+            text-align: left;
+            color: #d79921; /* Gruvbox yellow */
+            font-weight: bold;
+            font-size: 20px;
+            padding: 10px;
+        }
+
+        /* Table data styles */
+        .assignment-card td {
+            color: #8ec07c;
+            background-color: #3c3836;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        /* View details button */
+        .view-details-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #d79921;
+            color: #3c3836;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+        }
+
+        .view-details-btn:hover {
+            background-color: #b57614;
+        }
+    </style>
 </head>
 <body>
     {% include 'navbar.html' %}  <!-- Navbar component -->
 
     <h1>Assignments</h1>
 
-    <ul>
+    <div class="assignments-container">
         {% for assignment in assignments %}
-            <li>
-                <a href="/grade/assignment/{{ assignment.id }}">
-                    {{ assignment.name }} - Due: {{ assignment.due_date.strftime('%Y-%m-%d') }}
-                </a>
-            </li>
+            <div class="assignment-card">
+                <table>
+                    <tr>
+                        <th>Assignment Name:</th>
+                        <td>{{ assignment.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Due Date:</th>
+                        <td>{{ assignment.due_date.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    <tr>
+                        <th>Number of Submissions:</th>
+                        <td>{{ assignment.submissions_count }}</td>
+                    </tr>
+                </table>
+                <a href="/grade/assignment/{{ assignment.id }}" class="view-details-btn">View Details</a>
+            </div>
         {% endfor %}
-    </ul>
+    </div>
 
 </body>
 </html>
+

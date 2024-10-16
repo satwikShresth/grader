@@ -147,7 +147,7 @@ async def grade_assignment_form(
     rubric = assignment.rubric
 
     file_path = Path(submission.file_path)
-    logger.error(f"Path:{submission.file_path}")
+    logger.info(f"Compiling Assignment for path {submission.file_path}")
     if not file_path.exists():
         raise HTTPException(
             status_code=404, detail="Submission file not found")
@@ -234,7 +234,6 @@ async def process_submissions_in_background(user, submissions, assignment_number
         loop = asyncio.get_running_loop()
         for submission in submissions:
             file_path = Path(submission.file_path)
-            logger.error(file_path)
             if not file_path.exists():
                 logger.error(f"Submission file not found for {
                              submission.student_id}")
@@ -247,11 +246,9 @@ async def process_submissions_in_background(user, submissions, assignment_number
                              submission.student_id}")
                 continue
 
-            # Submit the task to ProcessPoolExecutor
             tasks.append(loop.run_in_executor(
                 pool, process_submission, file_path, submission, student, assignment_number, user))
 
-        # Await all tasks to complete
         await asyncio.gather(*tasks)
 
     return {"status": "Processing complete"}
@@ -260,7 +257,6 @@ async def process_submissions_in_background(user, submissions, assignment_number
 @router.post("/assignment/process-submissions")
 async def process_all_submissions(request: Request, background_tasks: BackgroundTasks, assignment_number: int = Query(...), db: Session = Depends(get_db)):
 
-    logger.error("passing")
     submissions = db.query(Submission).filter(
         Submission.assignment_id == assignment_number
     ).all()
