@@ -194,6 +194,7 @@ async def grade_assignment_form(
 @router.get("/assignment", response_class=HTMLResponse)
 async def get_assignments(request: Request, db: Session = Depends(get_db)):
     assignments = db.query(Assignment).all()
+    submissions = db.query(Submission).all()
 
     return templates.TemplateResponse(
         "available.html",
@@ -201,6 +202,7 @@ async def get_assignments(request: Request, db: Session = Depends(get_db)):
             "request": request,
             "assignments": assignments,
             "username": request.state.user,
+            "num_submissions": len(submissions)
         }
     )
 
