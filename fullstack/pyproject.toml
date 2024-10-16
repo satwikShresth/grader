@@ -12,6 +12,7 @@ dependencies = [
     "fastapi-sessions>=0.3.2",
     "fastapi[all,standard]>=0.115.0",
     "numpy>=2.1.2",
+    "psycopg2>=2.9.9",
     "pygments>=2.18.0",
     "sqlalchemy>=2.0.35",
     "sqlite-utils>=3.37",

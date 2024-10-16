@@ -1,17 +1,19 @@
 import os
-import logging
 import json
-from fastapi.templating import Jinja2Templates
-from fastapi import APIRouter, Request, HTTPException, Depends, Query
-from fastapi.responses import HTMLResponse
-from app.database import get_db, Session
-from app.models import Student, Assignment, Submission
-from app.utils.testrunner import TestRunner
-from app import BASE_DIR
+import logging
+import asyncio
 from pathlib import Path
-from functools import lru_cache
+from app import BASE_DIR
+from app.database import get_db
 from cachetools import TTLCache
-
+from functools import lru_cache
+from sqlalchemy.orm import Session
+from fastapi.responses import HTMLResponse
+from app.utils.testrunner import TestRunner
+from fastapi.templating import Jinja2Templates
+from concurrent.futures import ProcessPoolExecutor
+from app.models import Student, Assignment, Submission
+from fastapi import APIRouter, Request, HTTPException, Depends, Query, BackgroundTasks
 
 logger = logging.getLogger('uvicorn.error')
 router = APIRouter(tags=["grading"])
@@ -201,3 +203,74 @@ async def get_assignments(request: Request, db: Session = Depends(get_db)):
             "username": request.state.user,
         }
     )
+
+
+def process_submission(file_path, submission, student, assignment_number, user):
+    runner = TestRunner(submission_folder=file_path)
+    tabs = runner.generate_tabs(commands=[
+        ('bfs', None),
+        ('dfs', '-|--|-OO|O--O|-OOOO'),
+        ('a_star', 'O|OO|OOO|OOOO|OOOOO'),
+        ('random', None)
+    ])
+
+    result_html_path = file_path / 'result.html'
+
+    context = {
+        "assignment_number": assignment_number,
+        "student": student.UserID,  # Replace with correct field if needed
+        "submission": submission,
+        "tabs": tabs,
+        "username": user
+    }
+    html_content = templates.get_template("test_result.html").render(context)
+
+    result_html_path.write_text(html_content, encoding='utf-8')
+
+
+async def process_submissions_in_background(user, submissions, assignment_number, db):
+    tasks = []
+    with ProcessPoolExecutor() as pool:
+        loop = asyncio.get_running_loop()
+        for submission in submissions:
+            file_path = Path(submission.file_path)
+            logger.error(file_path)
+            if not file_path.exists():
+                logger.error(f"Submission file not found for {
+                             submission.student_id}")
+                continue
+
+            student = db.query(Student).filter(
+                Student.UserID == submission.student_id).first()
+            if not student:
+                logger.error(f"Student not found for submission {
+                             submission.student_id}")
+                continue
+
+            # Submit the task to ProcessPoolExecutor
+            tasks.append(loop.run_in_executor(
+                pool, process_submission, file_path, submission, student, assignment_number, user))
+
+        # Await all tasks to complete
+        await asyncio.gather(*tasks)
+
+    return {"status": "Processing complete"}
+
+
+@router.post("/assignment/process-submissions")
+async def process_all_submissions(request: Request, background_tasks: BackgroundTasks, assignment_number: int = Query(...), db: Session = Depends(get_db)):
+
+    logger.error("passing")
+    submissions = db.query(Submission).filter(
+        Submission.assignment_id == assignment_number
+    ).all()
+
+    if not submissions:
+        raise HTTPException(
+            status_code=404, detail="No submissions found for this assignment")
+
+    # Pass the 'db' dependency to the background task for querying student
+    background_tasks.add_task(
+        process_submissions_in_background, request.state.user, submissions, assignment_number, db)
+
+    return {"status": "Processing submissions in background"}

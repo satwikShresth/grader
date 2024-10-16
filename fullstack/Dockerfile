@@ -21,7 +21,7 @@ ENV PYTHONPATH=/app
 
 RUN mkdir ./database
 
-COPY ./pyproject.toml ./uv.lock ./alembic.ini /app/
+COPY ./pyproject.toml ./uv.lock /app/
 
 COPY ./app /app/app
 

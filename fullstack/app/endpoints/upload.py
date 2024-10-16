@@ -3,13 +3,17 @@ from fastapi.responses import JSONResponse
 from pathlib import Path
 from app import UNZIP_DIR, UPLOAD_DIR
 from app.utils import parser, organizer
-from app.database import get_db, Session
+from app.database import get_db
 from app.models import Assignment
 from datetime import datetime
+from sqlalchemy.orm import Session
 import json
+import logging
 import zipfile
 import shutil
 
+
+logger = logging.getLogger('uvicorn.error')
 router = APIRouter(tags=["upload"])
 
 
@@ -75,31 +79,45 @@ async def upload_all(
     gradebookFile: UploadFile = File(...),
     db: Session = Depends(get_db)
 ):
-    rubric_content = handle_rubric_file(rubricFile)
+    # Check if the assignment already exists in the database
+    existing_assignment = db.query(
+        Assignment).filter_by(id=assignmentId).first()
 
+    if not existing_assignment:
+        # If the assignment doesn't exist, handle rubric and due date
+        rubric_content = handle_rubric_file(rubricFile)
+        due_date_parsed = parse_due_date(dueDate)
+
+        # Create a new assignment
+        new_assignment = Assignment(
+            id=assignmentId,
+            name=assignmentName,
+            rubric=rubric_content,  # Store the JSON content directly into the rubric column
+            due_date=due_date_parsed
+        )
+
+        # Add the new assignment to the database
+        db.add(new_assignment)
+        db.commit()
+        db.refresh(new_assignment)
+        logger.info(f"New assignment created: {
+                    assignmentName} with ID {assignmentId}")
+    else:
+        logger.info(f"Assignment already exists: {
+                    existing_assignment.name} with ID {assignmentId}")
+
+    # Process the gradebook file
     target_path = handle_gradebook_file(gradebookFile)
 
+    # Organize the files and link them to the assignment
     organize_files(target_path, assignmentId)
-
-    due_date_parsed = parse_due_date(dueDate)
-
-    new_assignment = Assignment(
-        id=assignmentId,
-        name=assignmentName,
-        rubric=rubric_content,  # Store the JSON content directly into the rubric column
-        due_date=due_date_parsed
-    )
-
-    db.add(new_assignment)
-    db.commit()
-    db.refresh(new_assignment)
 
     # Return a success message
     return JSONResponse(content={
         "status": "Assignment and files uploaded successfully",
-        "assignmentId": new_assignment.id,
-        "assignmentName": new_assignment.name,
-        "dueDate": new_assignment.due_date.strftime("%Y-%m-%d")
+        "assignmentId": assignmentId,
+        "assignmentName": assignmentName,
+        "dueDate": dueDate
     })
 
 

@@ -1,4 +1,3 @@
-
 from app import TEMPLATES
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse, HTMLResponse
