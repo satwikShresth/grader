@@ -32,7 +32,6 @@ pycodestyle = { enabled = false }
 enabled = false
 ignore = []
 maxLineLength = 160
-
 mypy = { enabled = false }
 isort = { enabled = false }
 yapf = { enabled = false }
@@ -41,6 +40,3 @@ pydocstyle = { enabled = false }
 mccabe = { enabled = false }
 preload = { enabled = false }
 rope_completion = { enabled = true }
-
-[tool.venv]
-path = "../.venv"
