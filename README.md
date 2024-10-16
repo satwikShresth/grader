@@ -38,5 +38,14 @@ The **CS: 380 Grading Tool** is designed to streamline the grading process for a
 
 Access the app at `http://localhost:8000`.
 
+
+## Pre-requisites
+
+You will need add a file for all the studnets, divided into Groups.
+
+Access all the app api documentation at `http://localhost:8000/docs`.
+
+use the uploads/group post api to add the students file.
+
 ## License
 This project is licensed under the MIT License.
