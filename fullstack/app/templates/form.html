@@ -546,6 +546,13 @@
             const submissionUrl = currentUrl + "/submission"; // Append /submission to the URL
             window.open(submissionUrl, '_blank'); // Open in a new tab
         }
+
+        const form = document.getElementById('grading-form');
+
+        form.addEventListener('input', function() {
+            submitGrades(event);
+            location.reload();
+        });
     </script>
 </body>
 </html>

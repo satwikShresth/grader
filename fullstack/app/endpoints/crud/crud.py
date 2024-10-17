@@ -230,7 +230,6 @@ def get_grade_feedback_by_userid(
             status_code=404, detail="Submission not found for this user and assignment"
         )
 
-    # Return the grade and feedback in a dictionary
     return {
         "grade": db_submission.grade,
         "feedback": db_submission.feedback

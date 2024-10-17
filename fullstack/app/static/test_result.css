@@ -16,6 +16,7 @@ select {
     border-radius: 8px; /* Rounded corners for dropdown */ 
     cursor: pointer; 
     appearance: none;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
 }
 
 /* Style for content block with rounded corners */
@@ -53,74 +54,6 @@ p { color: #8ec07c; }
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-}
-
-/* Adjust button margin to align with the select element */
-.rerender-button {
-    margin-left: 20px; /* Optional: Adjust spacing between the button and dropdown */
-    padding: 10px 20px;
-    font-size: 16px;
-    color: white;
-    background-color: #cc241d;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: 'Fira Code', monospace;
-}
-/* General button styles */
-button {
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
-    font-family: 'Fira Code', monospace;
-}
-
-/* Hover state */
-button:hover {
-    background-color: #b0251a; /* Darker color on hover */
-    transform: scale(1.05); /* Slightly scale up */
-}
-
-/* Active/Selected state (when clicked) */
-button:active {
-    background-color: #a21d15; /* Even darker color on click */
-    transform: scale(0.95); /* Slightly scale down on click */
-}
-
-/* Focus state (when selected via keyboard) */
-button:focus {
-    outline: none; /* Remove default outline */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Add shadow for focus */
-}
-
-/* Specific style for the Re-Render button */
-.rerender-button {
-    font-size: 16px;
-    padding: 10px 20px;
-    margin: 20px 0;
-    color: white;
-    background-color: #cc241d;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* Apply the hover and active styles for dropdown (select) as well */
-select {
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
-}
-
-select:hover {
-    background-color: #387980; /* Change background on hover */
-}
-
-select:focus {
-    outline: none; /* Remove default outline */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Add shadow on focus */
-}
-.controls {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
     gap: 20px; /* Optional: Spacing between the dropdown and button */
 }
 
@@ -145,6 +78,11 @@ select, .rerender-button {
     font-family: 'Fira Code', monospace;
     box-sizing: border-box; /* Ensure padding doesn't affect the height/width */
 }
+
+.rerender-button{
+    background-color: #cc241d;
+}
+
 /* Additional hover and active states for both */
 select:hover, .rerender-button:hover {
     background-color: #387980; /* Slightly darker color on hover */
@@ -158,3 +96,99 @@ select:focus, .rerender-button:focus {
 .rerender-button:active, select:active {
     transform: scale(0.95); /* Slight shrink effect on click */
 }
+
+/* General button styles */
+button {
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    font-family: 'Fira Code', monospace;
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Hover state */
+button:hover {
+    transform: scale(1.05); /* Slightly scale up */
+}
+
+/* Active state */
+button:active {
+    transform: scale(0.95); /* Slightly scale down on click */
+}
+
+/* Navigation buttons styling */
+.navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.navigation-buttons .nav-left {
+    align-self: flex-start;
+}
+
+.navigation-buttons .nav-right {
+    align-self: flex-end;
+}
+
+/* Grading buttons styling */
+.grading-buttons {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.grading-buttons button {
+    margin-left: 10px;
+}
+
+/* Grading buttons colors */
+.grading-buttons button.correct {
+    background-color: #458588;
+}
+
+.grading-buttons button.incorrect {
+    background-color: #458588;
+}
+
+.grading-buttons button.ungraded {
+    background-color: #a89984; /* A little gray */
+}
+
+/* Selected states */
+.grading-buttons button.selected.correct {
+    background-color: #689d6a; /* Green */
+    color: white;
+}
+
+.grading-buttons button.selected.incorrect {
+    background-color: #fb4934; /* Red */
+    color: white;
+}
+
+.grading-buttons button.selected.ungraded {
+    background-color: #7c6f64; /* Lighter gray */
+    color: white;
+}
+
+/* Disabled state */
+.grading-buttons button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Adjustments for previous and next buttons */
+.navigation-buttons .nav-left button {
+    background-color: #458588;
+    margin-left: 0;
+}
+
+.navigation-buttons .nav-right button {
+    background-color: #458588;
+    margin-right: 0;
+}
+

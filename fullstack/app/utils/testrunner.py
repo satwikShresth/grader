@@ -4,21 +4,22 @@ from ansi2html import Ansi2HTMLConverter
 import pygments
 from pygments import formatters, lexers
 from pygments.util import ClassNotFound
-
 import logging
+
 logger = logging.getLogger('uvicorn.error')
 
 
 class TestRunner:
-    def __init__(self, submission_folder, files=["search.py", "agent.py"]):
+    def __init__(self, submission_folder, files):
         self.submission_folder = Path(submission_folder, "submission")
         self.files = files
         self.conv = Ansi2HTMLConverter(inline=True)
         self.tabs = []
 
-    def run_search(self, script_name, *args):
+    def run_script(self, script_name, *args):
         command = ['python3', str(
             self.submission_folder / script_name)] + list(args)
+        logger.info(f"Executing command: {' '.join(command)}")
         result = subprocess.run(command, capture_output=True, text=True)
         return result.stdout, result.stderr
 
@@ -54,51 +55,42 @@ class TestRunner:
                         expected = value
                         script_name = new_command_args[0]
                         args = new_command_args[1:]
-                        stdout, stderr = self.run_search(script_name, *args)
+
+                        # Extract file_name, function_name, and test_case
+                        file_name = script_name
+                        function_name = args[0] if len(args) > 0 else ''
+                        test_case = args[1] if len(args) > 1 else ''
+
+                        logger.info(f"Running script: {
+                                    script_name} with args: {args}")
+                        stdout, stderr = self.run_script(script_name, *args)
                         stdout_truncated = self.truncate_output(stdout)
                         stderr_truncated = self.truncate_output(stderr)
 
+                        # Construct a valid HTML ID
+                        tab_id = f"tab_{script_name}_{'_'.join(args)}".replace(
+                            '/', '_').replace(' ', '_')
+
                         tab = {
-                            'id': f"tab_{script_name}_{'_'.join(args)}",
+                            'id': tab_id,
                             'title': f"{script_name} {' '.join(args)}",
                             'content': self.conv.convert(stdout_truncated, full=False),
                             'error': stderr_truncated if stderr else None,
                             'expected': expected,
                             'command': ' '.join(['python3', script_name] + args),
-                            'type': 'output'
+                            'type': 'output',
+                            'file_name': file_name,
+                            'function_name': function_name,
+                            'test_case': test_case
                         }
                         self.tabs.append(tab)
-            elif isinstance(test_cases, list):
-                for item in test_cases:
-                    if isinstance(item, dict):
-                        for key, value in item.items():
-                            new_command_args = command_args + [key]
-                            expected = value
-                            script_name = new_command_args[0]
-                            args = new_command_args[1:]
-                            stdout, stderr = self.run_search(
-                                script_name, *args)
-                            stdout_truncated = self.truncate_output(stdout)
-                            stderr_truncated = self.truncate_output(stderr)
-
-                            tab = {
-                                'id': f"tab_{script_name}_{'_'.join(args)}",
-                                'title': f"{script_name} {' '.join(args)}",
-                                'content': self.conv.convert(stdout_truncated, full=False),
-                                'error': stderr_truncated if stderr else None,
-                                'expected': expected,
-                                'command': ' '.join(['python3', script_name] + args),
-                                'type': 'output'
-                            }
-                            self.tabs.append(tab)
             else:
-                # Unexpected type
-                pass
+                logger.warning(f"Unexpected test case format: {test_cases}")
 
         self.tabs = []
-        for files, arguments in test_cases.items():
-            logger.info(files)
-            process_test_cases([files], arguments)
+        for file, arguments in test_cases.items():
+            logger.info(f"Processing test cases for file: {file}")
+            process_test_cases([file], arguments)
 
         for file in self.files:
             self.tabs.append({
@@ -109,3 +101,4 @@ class TestRunner:
             })
 
         return self.tabs
+

@@ -175,8 +175,7 @@ async def grade_assignment_form(
         context = {
             "request": request,
             "assignment_number": assignment_number,
-            "student": student,
-            "rubric": rubric,
+            "user_id": student.UserID,
             "submission": submission,
             "tabs": tabs,
             "username": request.state.user,
@@ -206,7 +205,7 @@ async def get_assignments(request: Request, db: Session = Depends(get_db)):
     )
 
 
-def process_submission(file_path, submission, student: Student, assignment, user):
+def process_submission(request, file_path, submission, student: Student, assignment, user):
     logger.info(f"Async Compling: {student.Name} assignment")
     test_cases = assignment.rubric.get('test_cases', {})
     files = assignment.rubric.get('files', [])
@@ -217,13 +216,15 @@ def process_submission(file_path, submission, student: Student, assignment, user
     result_html_path = file_path / 'result.html'
 
     context = {
-        "assignment_number": assignment.id,
-        "student": student,
+        "request": request,
+        "assignment_number": submission.assignment_id,
+        "user_id": student.UserID,
         "submission": submission,
         "tabs": tabs,
-        "username": user,
-        "title": f"Assignment {assignment.id} Submission for {student.Name}",
+        "username": request.state.user,
+        "title": f"Assignment {assignment_number} Submission for {student.Name}",
     }
+
     html_content = templates.get_template(
         "test_result.html").render(context)
 

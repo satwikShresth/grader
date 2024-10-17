@@ -5,8 +5,11 @@ from zipfile import ZipFile
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
-from app.models import Submission, Student
+from app.models import Submission, Student, Assignment
 import json
+import logging
+
+logger = logging.getLogger('uvicorn.error')
 
 
 class Organizer:
@@ -57,14 +60,13 @@ class Organizer:
             # After renaming, read submission.log and extract submission date
             if filename == 'submission.log':
                 self.process_submission_log(
-                    new_file_path, userid, new_file_path)
+                    new_file_path, userid, new_file_path.parent)
 
             print(f"File '{filename}' stored in directory '{directory_name}'")
         else:
             print(f"File '{filename}' does not exist in the directory.")
 
-    def process_submission_log(self, log_path: Path, userid: str, file_path: Path):
-        """Reads the submission.log file and extracts the submission date to populate the Submission DB."""
+    def process_submission_log(self, log_path: Path, userid: str, submission_dir: Path):
         submission_pattern = r"Date Submitted:\s+(.*)\s+[A-Z]{3,4}$"
         date_format = "%A, %B %d, %Y %I:%M:%S %p"
 
@@ -87,34 +89,64 @@ class Organizer:
 
         if submission_date:
             # Populate the Submission DB
-            self.populate_submission_db(userid, submission_date, file_path)
+            self.populate_submission_db(
+                userid, submission_date, submission_dir)
 
-    def populate_submission_db(self, userid: str, submission_date: datetime, file_path: Path):
+    def populate_submission_db(self, userid: str, submission_date: datetime, submission_dir: Path):
         """Populates the Submission DB by linking to the student and saving the submission date."""
         db: Session = SessionLocal()
 
-        # Fetch the student by their user ID
-        student = db.query(Student).filter(Student.UserID == userid).first()
+        try:
+            # Fetch the student by their user ID
+            student = db.query(Student).filter(
+                Student.UserID == userid).first()
 
-        if student:
-            new_submission = Submission(
-                student_id=student.UserID,
-                assignment_id=self.assignment_id,
-                submission_date=submission_date,
-                feedback=[],
-                grade=0.0,
-                file_path=str(file_path.parent)
-            )
+            if student:
+                assignment = db.query(Assignment).filter(
+                    Assignment.id == self.assignment_id).first()
+                if assignment:
+                    rubrics = assignment.rubric  # Assuming a relationship exists
+                    test_cases = rubrics.get("test_cases")
+                    logger.info(test_cases)
 
-            db.add(new_submission)
-            db.commit()
-            db.refresh(new_submission)
+                    cleaned_test_cases = self.clean_test_cases(test_cases)
 
-            print(f"Submission for student {student.Name} added to DB.")
+                    feedback = {
+                        'test_cases': cleaned_test_cases
+                    }
+
+                    new_submission = Submission(
+                        student_id=student.UserID,
+                        assignment_id=self.assignment_id,
+                        submission_date=submission_date,
+                        feedback=feedback,
+                        grade=0.0,
+                        file_path=str(submission_dir)
+                    )
+
+                    db.add(new_submission)
+                    db.commit()
+                    db.refresh(new_submission)
+
+                    print(f"Submission for student {
+                          student.Name} added to DB.")
+                else:
+                    print(f"Assignment with ID {
+                          self.assignment_id} not found.")
+            else:
+                print(f"Student with UserID {userid} not found.")
+        finally:
+            db.close()
+
+    def clean_test_cases(self, test_cases):
+        """Recursively replaces non-dictionary values in test_cases with None."""
+        if isinstance(test_cases, dict):
+            cleaned = {}
+            for key, value in test_cases.items():
+                cleaned[key] = self.clean_test_cases(value)
+            return cleaned
         else:
-            print(f"Student with UserID {userid} not found.")
-
-        db.close()
+            return None
 
     def unzip_recursive(self, dir_path):
         for item in dir_path.iterdir():
@@ -125,3 +157,4 @@ class Organizer:
         for subdir in dir_path.iterdir():
             if subdir.is_dir():
                 self.unzip_recursive(subdir)
+
