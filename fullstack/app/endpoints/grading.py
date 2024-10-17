@@ -166,13 +166,11 @@ async def grade_assignment_form(
         html_content = result_html_path.read_text(encoding='utf-8')
         return HTMLResponse(content=html_content)
     else:
-        runner = TestRunner(submission_folder=file_path)
-        tabs = runner.generate_tabs(commands=[
-            ('bfs', None),
-            ('dfs', '-|--|-OO|O--O|-OOOO'),
-            ('a_star', 'O|OO|OOO|OOOO|OOOOO'),
-            ('random', None)
-        ])
+        test_cases = rubric.get('test_cases', {})
+        files = rubric.get('files', [])
+
+        runner = TestRunner(submission_folder=file_path, files=files)
+        tabs = runner.generate_tabs(test_cases=test_cases)
 
         context = {
             "request": request,
@@ -182,6 +180,7 @@ async def grade_assignment_form(
             "submission": submission,
             "tabs": tabs,
             "username": request.state.user,
+            "title": f"Assignment {assignment_number} Submission for {student.Name}",
         }
         html_content = templates.get_template(
             "test_result.html").render(context)
@@ -207,30 +206,31 @@ async def get_assignments(request: Request, db: Session = Depends(get_db)):
     )
 
 
-def process_submission(file_path, submission, student, assignment_number, user):
-    runner = TestRunner(submission_folder=file_path)
-    tabs = runner.generate_tabs(commands=[
-        ('bfs', None),
-        ('dfs', '-|--|-OO|O--O|-OOOO'),
-        ('a_star', 'O|OO|OOO|OOOO|OOOOO'),
-        ('random', None)
-    ])
+def process_submission(file_path, submission, student: Student, assignment, user):
+    logger.info(f"Async Compling: {student.Name} assignment")
+    test_cases = assignment.rubric.get('test_cases', {})
+    files = assignment.rubric.get('files', [])
+
+    runner = TestRunner(submission_folder=file_path, files=files)
+    tabs = runner.generate_tabs(test_cases=test_cases)
 
     result_html_path = file_path / 'result.html'
 
     context = {
-        "assignment_number": assignment_number,
-        "student": student.UserID,  # Replace with correct field if needed
+        "assignment_number": assignment.id,
+        "student": student,
         "submission": submission,
         "tabs": tabs,
-        "username": user
+        "username": user,
+        "title": f"Assignment {assignment.id} Submission for {student.Name}",
     }
-    html_content = templates.get_template("test_result.html").render(context)
+    html_content = templates.get_template(
+        "test_result.html").render(context)
 
     result_html_path.write_text(html_content, encoding='utf-8')
 
 
-async def process_submissions_in_background(user, submissions, assignment_number, db):
+async def process_submissions_in_background(user, submissions, assignment, db):
     tasks = []
     with ProcessPoolExecutor() as pool:
         loop = asyncio.get_running_loop()
@@ -249,7 +249,7 @@ async def process_submissions_in_background(user, submissions, assignment_number
                 continue
 
             tasks.append(loop.run_in_executor(
-                pool, process_submission, file_path, submission, student, assignment_number, user))
+                pool, process_submission, file_path, submission, student, assignment, user))
 
         await asyncio.gather(*tasks)
 
@@ -267,8 +267,13 @@ async def process_all_submissions(request: Request, background_tasks: Background
         raise HTTPException(
             status_code=404, detail="No submissions found for this assignment")
 
-    # Pass the 'db' dependency to the background task for querying student
+    assignment = db.query(Assignment).filter(
+        Assignment.id == assignment_number
+    ).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
     background_tasks.add_task(
-        process_submissions_in_background, request.state.user, submissions, assignment_number, db)
+        process_submissions_in_background, request.state.user, submissions, assignment, db)
 
     return {"status": "Processing submissions in background"}

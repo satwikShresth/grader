@@ -169,7 +169,7 @@ async def upload_rubric(
         new_assignment = Assignment(
             id=assignmentId,
             name=assignmentName,
-            rubric=rubric_content,  # Store the JSON content directly into the rubric column
+            rubric=rubric_content,
             due_date=due_date_parsed
         )
         db.add(new_assignment)

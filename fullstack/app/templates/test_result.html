@@ -87,6 +87,10 @@
             <div id="{{ tab.id }}" class="result-content hidden">
                 <h3>{{ tab.title }}</h3>
                 <div class="code-block">
+                    <h4>Command Executed:</h4>
+                    <pre>{{ tab.command }}</pre>
+                    <h4>Expected Result:</h4>
+                    <pre>{{ tab.expected }}</pre>
                     <h4>Output:</h4>
                     <pre>{{ tab.content | safe }}</pre>
                     {% if tab.error %}
