@@ -21,6 +21,7 @@ class Submission(Base):
     submission_date = Column(DateTime(timezone=True),
                              server_default=func.now())
     feedback = Column(JSON, nullable=False)
+    test_cases = Column(JSON, nullable=False)
     file_path = Column(String, nullable=False)  # Column to store file path
 
     student_id = Column(String, ForeignKey("students.UserID"), nullable=False)

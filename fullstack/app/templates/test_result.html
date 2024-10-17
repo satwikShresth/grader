@@ -187,8 +187,7 @@
         }
     </style>
 <script>
-    let feedback = {}; // Will hold the feedback object from the server
-    let grade = null;
+    let test_cases = {}; // Will hold the test_cases object from the server
     let gradingStates = {}; // Flat structure for tracking grading states
     let userid = '{{ user_id }}'; // Replace with the actual user ID
     let assignment_number = '{{ assignment_number }}'; // Replace with the actual assignment number
@@ -199,7 +198,6 @@
         document.getElementById(fileId).classList.remove('hidden');
     }
 
-    // Function to show the selected section
     function showSection(section) {
         document.querySelectorAll('.content-block').forEach(el => el.classList.add('hidden'));
         document.getElementById(section).classList.remove('hidden');
@@ -211,10 +209,8 @@
         }
     }
 
-    // Flatten the feedback.test_cases object and store it in gradingStates
     function flattenTestCases(testCases) {
         let flatTestCases = {};
-        
         function flatten(obj, prefix = '') {
             for (let key in obj) {
                 if (typeof obj[key] === 'object' && obj[key] !== null) {
@@ -224,48 +220,41 @@
                 }
             }
         }
-        
         flatten(testCases);
         return flatTestCases;
     }
 
-    // Unflatten the flat gradingStates back to the nested feedback.test_cases
     function unflattenGradingStates(flatGradingStates) {
         let unflattened = {};
 
         for (let flatKey in flatGradingStates) {
             const value = flatGradingStates[flatKey];
-            const keys = flatKey.split('\0'); // Split the flat key by spaces to get the nested keys
+            const keys = flatKey.split('\0');
             let current = unflattened;
 
-            // Traverse and create nested objects if necessary
             for (let i = 0; i < keys.length - 1; i++) {
                 const key = keys[i];
                 if (!current[key]) {
                     current[key] = {};
                 }
-                current = current[key]; // Move deeper
+                current = current[key];
             }
 
-            // Set the value at the final key
             current[keys[keys.length - 1]] = value;
         }
 
         return unflattened;
     }
 
-    // Fetch feedback from the server and update the grading states
+    // Fetch test_cases from the server and update the grading states
     function fetchFeedback() {
-        fetch(`/api/submissions/feedback?userid=${userid}&assignment_number=${assignment_number}`)
+        fetch(`/api/submissions/test_cases?userid=${userid}&assignment_number=${assignment_number}`)
             .then(response => response.json())
             .then(data => {
-                feedback = data.feedback || {};
-                grade = data.grade || null;
+                test_cases = data.test_cases || {};
 
-                // Flatten the feedback.test_cases
-                gradingStates = flattenTestCases(feedback.test_cases || {});
+                gradingStates = flattenTestCases(test_cases || {});
 
-                // Update the grading buttons based on the current state
                 let sectionSelect = document.getElementById('section-select');
                 let section = sectionSelect.value;
 
@@ -276,7 +265,7 @@
                 }
             })
             .catch(error => {
-                console.error('Error fetching feedback:', error);
+                console.error('Error fetching test_cases:', error);
             });
     }
 
@@ -300,24 +289,21 @@
         if (resultContent) {
             let h3Tag = resultContent.querySelector('h3');
             if (h3Tag) {
-                let key = h3Tag.textContent.trim();  // Use the flattened key format
+                let key = h3Tag.textContent.split(" ").join('\0');
                 return gradingStates[key] !== undefined ? gradingStates[key] : null;
             }
         }
-        return null;  // Default to ungraded if no key is found
+        return null;
     }
 
-    // Set the grading state in the flattened gradingStates object
     function setGrading(state) {
         const resultContent = document.querySelector('.result-content:not(.hidden)');
         if (resultContent) {
             let h3Tag = resultContent.querySelector('h3');
             if (h3Tag) {
-                let key = h3Tag.textContent.trim();  // Use the flattened key format
+                let key = h3Tag.textContent.split(" ").join('\0');
                 gradingStates[key] = state;
 
-                // Update the feedback object as well
-                updateFeedbackObject(key, state);
 
                 console.log('Updated gradingStates:', gradingStates);
 
@@ -327,22 +313,22 @@
         }
     }
 
-    // Update the original feedback object based on the flattened key
-    function updateFeedbackObject(flattenedKey, state) {
-        const keyParts = flattenedKey.split(' ');
-        let current = feedback.test_cases;
-
-        // Traverse the nested structure and update the last key's value
-        for (let i = 0; i < keyParts.length - 1; i++) {
-            let key = keyParts[i];
-            if (!current[key]) {
-                current[key] = {};
-            }
-            current = current[key];
-        }
-
-        current[keyParts[keyParts.length - 1]] = state;
-    }
+    // Update the original test_cases object based on the flattened key
+    //function updateFeedbackObject(flattenedKey, state) {
+    //    const keyParts = flattenedKey.split('\0');
+    //    let current = test_cases.test_cases;
+    //
+    //    // Traverse the nested structure and update the last key's value
+    //    for (let i = 0; i < keyParts.length - 1; i++) {
+    //        let key = keyParts[i];
+    //        if (!current[key]) {
+    //            current[key] = {};
+    //        }
+    //        current = current[key];
+    //    }
+    //
+    //    current[keyParts[keyParts.length - 1]] = state;
+    //}
 
     // Update the grading buttons based on the state (null, true, false)
     function updateGradingButtons(state) {
@@ -363,20 +349,18 @@
         }
     }
 
-    // Send the updated feedback to the server
+    // Send the updated test_cases to the server
     function sendFeedbackToServer() {
-        // Unflatten gradingStates to get the original nested format
+        //Unflatten gradingStates to get the original nested format
         const unflattenedTestCases = unflattenGradingStates(gradingStates);
 
-        // Update feedback.test_cases with the unflattened test cases
-        feedback.test_cases = unflattenedTestCases;
+        test_cases = unflattenedTestCases;
 
         let data = {
-            grade: grade,
-            feedback: feedback
+            test_cases:test_cases
         };
 
-        fetch(`/api/submissions/feedback?userid=${userid}&assignment_number=${assignment_number}`, {
+        fetch(`/api/submissions/test_cases?userid=${userid}&assignment_number=${assignment_number}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -385,7 +369,7 @@
         })
         .then(response => {
             if (!response.ok) {
-                throw new Error('Failed to update feedback');
+                throw new Error('Failed to update test_cases');
             }
             return response.json();
         })
@@ -393,7 +377,7 @@
             console.log('Feedback updated successfully:', data);
         })
         .catch(error => {
-            console.error('Error updating feedback:', error);
+            console.error('Error updating test_cases:', error);
         });
     }
 
@@ -431,7 +415,7 @@
         window.location.search = urlParams.toString();
     }
 
-    // On page load, fetch feedback and display the corresponding grading state
+    // On page load, fetch test_cases and display the corresponding grading state
     window.onload = function() {
         let fileSelect = document.getElementById('file-select');
         let initialFileId = fileSelect.value;
@@ -441,7 +425,7 @@
         let section = sectionSelect.value;
         showSection(section);
 
-        fetchFeedback();  // Fetch feedback and update grading buttons on page load
+        fetchFeedback();  // Fetch test_cases and update grading buttons on page load
     };
 </script>
 </head>

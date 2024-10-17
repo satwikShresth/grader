@@ -111,15 +111,12 @@ class Organizer:
 
                     cleaned_test_cases = self.clean_test_cases(test_cases)
 
-                    feedback = {
-                        'test_cases': cleaned_test_cases
-                    }
-
                     new_submission = Submission(
                         student_id=student.UserID,
                         assignment_id=self.assignment_id,
                         submission_date=submission_date,
-                        feedback=feedback,
+                        feedback={},
+                        test_cases=cleaned_test_cases,
                         grade=0.0,
                         file_path=str(submission_dir)
                     )
