@@ -5,16 +5,14 @@
 
     <!-- Dropdown for user profile -->
     <div class="dropdown">
-        <button class="dropbtn">{{ username }}</button>
+        <a href="#" class="dropbtn">{{ username }}</a>
         <div class="dropdown-content">
             <a href="/logout">Logout</a>
         </div>
     </div>
 </nav>
 
-<!-- Add CSS for the navbar directly into navbar.html -->
 <style>
-    /* Navbar container */
     .navbar {
         display: flex;
         justify-content: space-between;
@@ -22,10 +20,13 @@
         padding: 10px 20px;
         border-radius: 8px;
         font-family: 'Fira Code', monospace;
+        align-items: center; /* Ensure all items align vertically in the center */
     }
 
-    /* Links inside the navbar */
-    .navbar a {
+    /* Base styles for all navigation links */
+    .navbar a,
+    .dropbtn,
+    .dropdown-content a {
         margin-right: 15px;
         padding: 10px;
         text-decoration: none;
@@ -33,10 +34,15 @@
         font-size: 18px;
         border-radius: 8px;
         transition: background-color 0.3s ease;
+        font-family: 'Fira Code', monospace;
+        display: inline-block;
+        vertical-align: middle; /* Align with other elements */
     }
 
-    /* Hover effect for navbar links */
-    .navbar a:hover {
+    /* Hover effect for all navigation links */
+    .navbar a:hover,
+    .dropbtn:hover,
+    .dropdown-content a:hover {
         background-color: #3c3836; /* Slightly darker background on hover */
         color: #83a598; /* Gruvbox light blue */
     }
@@ -45,20 +51,6 @@
     .dropdown {
         position: relative;
         display: inline-block;
-        font-family: 'Fira Code', monospace;
-    }
-
-    /* Dropdown button (the username) */
-    .dropbtn {
-        background-color: #504945;
-        color: #8ec07c; /* Gruvbox green */
-        padding: 10px;
-        font-size: 18px;
-        border: none;
-        cursor: pointer;
-        border-radius: 8px;
-        transition: background-color 0.3s ease;
-        font-family: 'Fira Code', monospace;
     }
 
     /* Dropdown content (hidden by default) */
@@ -69,29 +61,9 @@
         min-width: 160px;
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         z-index: 1;
-        border-radius: 8px; /* Rounded dropdown content */
-        overflow: hidden;
-        font-family: 'Fira Code', monospace;
+        border-radius: 8px;
         right: 0; /* Align the dropdown content to the right edge */
-    }
-
-    /* Links inside the dropdown */
-    .dropdown-content a {
-        color: #8ec07c;
-        padding: 12px 16px;
-        text-decoration: none;
-        display: block;
-        background-color: #504945;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle border */
-        transition: background-color 0.3s ease;
-        font-family: 'Fira Code', monospace;
-        right: 0; /* Align the dropdown content to the right edge */
-    }
-
-    /* Hover effect for dropdown links */
-    .dropdown-content a:hover {
-        background-color: #83a598; /* Lightened blue for hover */
-        border-radius: 0;
+        top: 100%; /* Position it directly below the dropbtn */
     }
 
     /* Show the dropdown content when hovering over the dropdown */
@@ -99,9 +71,17 @@
         display: block;
     }
 
-    /* Hover effect for dropdown button */
-    .dropdown:hover .dropbtn {
-        background-color: #83a598; /* Lightened blue for hover */
+    /* Links inside the dropdown */
+    .dropdown-content a {
+        display: block;
+        padding: 10px;
+        background-color: #504945;
+    }
+
+    /* Hover effect for dropdown links */
+    .dropdown-content a:hover {
+        background-color: #3c3836; /* Same hover effect as other links */
+        color: #83a598;
     }
 
     /* Remove bottom border on the last dropdown link */
@@ -109,3 +89,4 @@
         border-bottom: none;
     }
 </style>
+

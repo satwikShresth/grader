@@ -41,6 +41,7 @@ def handle_gradebook_file(gradebook_file: UploadFile):
         raise HTTPException(
             status_code=400, detail="Only .zip files are allowed for the gradebook")
 
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
     gradebook_file_location = UPLOAD_DIR / gradebook_file.filename
     with open(gradebook_file_location, "wb") as buffer:
         shutil.copyfileobj(gradebook_file.file, buffer)
@@ -169,7 +170,7 @@ async def upload_rubric(
         new_assignment = Assignment(
             id=assignmentId,
             name=assignmentName,
-            rubric=rubric_content,  # Store the JSON content directly into the rubric column
+            rubric=rubric_content,
             due_date=due_date_parsed
         )
         db.add(new_assignment)

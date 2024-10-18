@@ -147,7 +147,7 @@ async def grade_assignment_form(
     rubric = assignment.rubric
 
     file_path = Path(submission.file_path)
-    logger.error(f"Path:{submission.file_path}")
+    logger.info(f"Compiling Assignment for path {submission.file_path}")
     if not file_path.exists():
         raise HTTPException(
             status_code=404, detail="Submission file not found")
@@ -166,22 +166,20 @@ async def grade_assignment_form(
         html_content = result_html_path.read_text(encoding='utf-8')
         return HTMLResponse(content=html_content)
     else:
-        runner = TestRunner(submission_folder=file_path)
-        tabs = runner.generate_tabs(commands=[
-            ('bfs', None),
-            ('dfs', '-|--|-OO|O--O|-OOOO'),
-            ('a_star', 'O|OO|OOO|OOOO|OOOOO'),
-            ('random', None)
-        ])
+        test_cases = rubric.get('test_cases', {})
+        files = rubric.get('files', [])
+
+        runner = TestRunner(submission_folder=file_path, files=files)
+        tabs = runner.generate_tabs(test_cases=test_cases)
 
         context = {
             "request": request,
             "assignment_number": assignment_number,
-            "student": student,
-            "rubric": rubric,
+            "user_id": student.UserID,
             "submission": submission,
             "tabs": tabs,
             "username": request.state.user,
+            "title": f"Assignment {assignment_number} Submission for {student.Name}",
         }
         html_content = templates.get_template(
             "test_result.html").render(context)
@@ -194,6 +192,7 @@ async def grade_assignment_form(
 @router.get("/assignment", response_class=HTMLResponse)
 async def get_assignments(request: Request, db: Session = Depends(get_db)):
     assignments = db.query(Assignment).all()
+    submissions = db.query(Submission).all()
 
     return templates.TemplateResponse(
         "available.html",
@@ -201,40 +200,43 @@ async def get_assignments(request: Request, db: Session = Depends(get_db)):
             "request": request,
             "assignments": assignments,
             "username": request.state.user,
+            "num_submissions": len(submissions)
         }
     )
 
 
-def process_submission(file_path, submission, student, assignment_number, user):
-    runner = TestRunner(submission_folder=file_path)
-    tabs = runner.generate_tabs(commands=[
-        ('bfs', None),
-        ('dfs', '-|--|-OO|O--O|-OOOO'),
-        ('a_star', 'O|OO|OOO|OOOO|OOOOO'),
-        ('random', None)
-    ])
+def process_submission(request, file_path, submission, student: Student, assignment, user):
+    logger.info(f"Async Compling: {student.Name} assignment")
+    test_cases = assignment.rubric.get('test_cases', {})
+    files = assignment.rubric.get('files', [])
+
+    runner = TestRunner(submission_folder=file_path, files=files)
+    tabs = runner.generate_tabs(test_cases=test_cases)
 
     result_html_path = file_path / 'result.html'
 
     context = {
-        "assignment_number": assignment_number,
-        "student": student.UserID,  # Replace with correct field if needed
+        "request": request,
+        "assignment_number": submission.assignment_id,
+        "user_id": student.UserID,
         "submission": submission,
         "tabs": tabs,
-        "username": user
+        "username": request.state.user,
+        "title": f"Assignment {assignment_number} Submission for {student.Name}",
     }
-    html_content = templates.get_template("test_result.html").render(context)
+
+    html_content = templates.get_template(
+        "test_result.html").render(context)
 
     result_html_path.write_text(html_content, encoding='utf-8')
 
 
-async def process_submissions_in_background(user, submissions, assignment_number, db):
+async def process_submissions_in_background(user, submissions, assignment, db):
     tasks = []
     with ProcessPoolExecutor() as pool:
         loop = asyncio.get_running_loop()
         for submission in submissions:
             file_path = Path(submission.file_path)
-            logger.error(file_path)
             if not file_path.exists():
                 logger.error(f"Submission file not found for {
                              submission.student_id}")
@@ -247,11 +249,9 @@ async def process_submissions_in_background(user, submissions, assignment_number
                              submission.student_id}")
                 continue
 
-            # Submit the task to ProcessPoolExecutor
             tasks.append(loop.run_in_executor(
-                pool, process_submission, file_path, submission, student, assignment_number, user))
+                pool, process_submission, file_path, submission, student, assignment, user))
 
-        # Await all tasks to complete
         await asyncio.gather(*tasks)
 
     return {"status": "Processing complete"}
@@ -260,7 +260,6 @@ async def process_submissions_in_background(user, submissions, assignment_number
 @router.post("/assignment/process-submissions")
 async def process_all_submissions(request: Request, background_tasks: BackgroundTasks, assignment_number: int = Query(...), db: Session = Depends(get_db)):
 
-    logger.error("passing")
     submissions = db.query(Submission).filter(
         Submission.assignment_id == assignment_number
     ).all()
@@ -269,8 +268,13 @@ async def process_all_submissions(request: Request, background_tasks: Background
         raise HTTPException(
             status_code=404, detail="No submissions found for this assignment")
 
-    # Pass the 'db' dependency to the background task for querying student
+    assignment = db.query(Assignment).filter(
+        Assignment.id == assignment_number
+    ).first()
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
     background_tasks.add_task(
-        process_submissions_in_background, request.state.user, submissions, assignment_number, db)
+        process_submissions_in_background, request.state.user, submissions, assignment, db)
 
     return {"status": "Processing submissions in background"}

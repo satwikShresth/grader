@@ -43,3 +43,7 @@ class GroupCreate(BaseModel):
 class SubmissionUpdateGradeFeedback(BaseModel):
     grade: Optional[float]
     feedback: Optional[Dict]
+
+
+class SubmissionUpdateTestCases(BaseModel):
+    test_cases: Optional[Dict]

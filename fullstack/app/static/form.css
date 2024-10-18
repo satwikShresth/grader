@@ -5,6 +5,7 @@ body {
     margin: 0;
     padding: 20px;
     line-height: 1.6;
+    color: #f8f8f2; /* Light text color for contrast */
 }
 
 h1, h2 {
@@ -16,7 +17,6 @@ form {
     background-color: #3c3836; /* Gruvbox background */
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 section {
@@ -42,10 +42,13 @@ label {
     margin: 10px 0;
 }
 
-input[type="checkbox"] {
+input[type="checkbox"],
+input[type="radio"] {
     margin-right: 10px;
     background-color: #3c3836; /* Gruvbox background */
     border: 1px solid #8ec07c; /* Gruvbox green */
+    width: 16px;
+    height: 16px;
 }
 
 textarea {
@@ -63,7 +66,7 @@ textarea {
 /* Button and Score Container */
 .button-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
     margin-top: 30px;
 }
@@ -104,7 +107,7 @@ textarea {
     background-color: #3c3836; /* Gruvbox background */
     color: #8ec07c; /* Gruvbox green */
     border: 1px solid #8ec07c; /* Gruvbox green */
-    padding: 10px; /* Added padding around the number */
+    padding: 10px;
 }
 
 /* General feedback section */
@@ -113,37 +116,96 @@ textarea[name="overall_feedback"] {
     width: calc(100% - 100px);
     height: 100px;
     margin-top: 10px;
-    font-size: 18px;
     background-color: #3c3836; /* Gruvbox background */
     color: #8ec07c; /* Gruvbox green */
     border: 1px solid #8ec07c; /* Gruvbox green */
 }
 
-/* Responsive Design */
+/* Test Cases Section */
+#test-cases-section {
+    background-color: #504945; /* Gruvbox gray */
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #8ec07c; /* Gruvbox green */
+    margin-bottom: 20px;
+}
+
+#test-cases-section h2 {
+    color: #d79921; /* Gruvbox yellow */
+    margin-bottom: 20px;
+}
+
+#test-cases-container p {
+    color: #f8f8f2; /* Light text color */
+    margin: 5px 0;
+}
+
+#test-cases-container hr {
+    border-top: 1px solid #8ec07c; /* Gruvbox green */
+    margin: 10px 0;
+}
+
+
+#test-cases-section {
+    background-color: #504945; /* Gruvbox gray */
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #8ec07c; /* Gruvbox green */
+    margin-bottom: 20px;
+}
+
+#test-cases-container {
+    padding: 10px;
+    font-family: Arial, sans-serif;
+}
+
+/* Test case item styling */
+.test-case-item {
+    margin-bottom: 10px;
+    font-size: 16px;
+    color: #f8f8f2; /* Light text color */
+}
+
+/* Styling for correct, incorrect, and ungraded results */
+.test-case-result {
+    font-weight: bold;
+}
+
+.test-case-result.correct {
+    color: #8ec07c; /* Gruvbox green for correct */
+}
+
+.test-case-result.incorrect {
+    color: #fb4934; /* Gruvbox red for incorrect */
+}
+
+.test-case-result.ungraded {
+    color: #928374; /* Gruvbox gray for ungraded */
+}
+
+/* Styling for deeper levels of indentation */
+.test-case-item strong {
+    color: #d79921; /* Gruvbox yellow for strong labels */
+}
+
+/* Add a visual line separator between major test case groups */
+#test-cases-container div + div {
+    border-top: 1px solid #8ec07c; /* Gruvbox green separator */
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+/* Responsive design for smaller screens */
 @media (max-width: 768px) {
-    form {
+    #test-cases-section {
         padding: 10px;
     }
 
-    .button-container {
-        flex-direction: column;
-        align-items: flex-start;
+    .test-case-item {
+        font-size: 14px;
     }
 
-    .button-container button {
-        width: 100%;
-        margin-bottom: 20px;
-    }
-
-    .total-deductions {
-        margin-bottom: 20px;
+    #test-cases-container {
+        padding: 5px;
     }
 }
-
-input[type="checkbox"] {
-    width: 16px;
-    height: 16px;
-    background-color: #3c3836; /* Gruvbox background */
-    border: 1px solid #8ec07c; /* Gruvbox green */
-}
-

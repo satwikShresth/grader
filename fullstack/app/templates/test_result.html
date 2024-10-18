@@ -3,29 +3,431 @@
 <head>
     <title>{{ title }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/static/test_result.css">
-    <script>
-        function showSection(section) {
-            document.querySelectorAll('.content-block').forEach(el => el.classList.add('hidden'));
-            document.getElementById(section).classList.remove('hidden');
+    <style>
+        body { 
+            font-family: 'Fira Code', monospace; 
+            background-color: #3c3836; 
+            color: #f8f8f8; 
+            margin: 0; 
+            padding: 20px; 
         }
 
-        function showFile(fileId) {
-            document.querySelectorAll('.file-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(fileId).classList.remove('hidden');
+        select { 
+            font-size: 16px; 
+            padding: 10px; 
+            margin: 10px 0; 
+            color: white; 
+            background-color: #458588; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            appearance: none;
+            transition: background-color 0.3s ease, transform 0.2s ease; 
         }
 
-        function showResult(resultId) {
-            document.querySelectorAll('.result-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(resultId).classList.remove('hidden');
+        .content-block { 
+            background-color: #272822; 
+            padding: 20px; 
+            border: 1px solid #458588; 
+            border-radius: 12px; 
+            color: #f8f8f8; 
+            min-height: 400px; 
+            margin-top: 10px;
         }
 
-        function forceRerender() {
-            const urlParams = new URLSearchParams(window.location.search);
-            urlParams.set('force_rerender', 'true');
-            window.location.search = urlParams.toString();
+        .code-block { 
+            background-color: #272822; 
+            color: #f8f8f8; 
+            padding: 20px; 
+            border-radius: 8px; 
+            font-family: 'Fira Code', monospace; 
+            min-height: 500px; 
         }
-    </script>
+
+        .code-block code { font-family: 'Fira Code', monospace; }
+
+        h1, h2, h3 { color: #d79921; font-family: 'Fira Code', monospace; }
+        p { color: #8ec07c; }
+
+        .hidden { display: none; } 
+        .error { color: #cc241d; font-weight: bold; font-family: 'Fira Code', monospace; }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px; 
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+
+        select, .rerender-button {
+            font-size: 16px;
+            padding: 10px 20px;
+            height: 45px; 
+            background-color: #458588;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-family: 'Fira Code', monospace;
+            box-sizing: border-box; 
+        }
+
+        .rerender-button{
+            background-color: #cc241d;
+        }
+
+        select:hover, .rerender-button:hover {
+            background-color: #387980; 
+        }
+
+        select:focus, .rerender-button:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); 
+        }
+
+        .rerender-button:active, select:active {
+            transform: scale(0.95); 
+        }
+
+        button {
+            transition: background-color 0.3s ease, transform 0.2s ease; 
+            font-family: 'Fira Code', monospace;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            transform: scale(1.05); 
+        }
+
+        button:active {
+            transform: scale(0.95); 
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+
+        .navigation-buttons .nav-left {
+            align-self: flex-start;
+        }
+
+        .navigation-buttons .nav-right {
+            align-self: flex-end;
+        }
+
+        .grading-buttons {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .grading-buttons button {
+            margin-left: 10px;
+            background-color:#458588;
+        }
+
+        .grading-buttons button.correct {
+            background-color: #458588;
+        }
+
+        .grading-buttons button.incorrect {
+            background-color: #458588;
+        }
+
+        .grading-buttons button.ungraded {
+            background-color: #a89984; 
+        }
+
+        .grading-buttons button.selected.correct {
+            background-color: #689d6a; 
+            color: white;
+        }
+
+        .grading-buttons button.selected.incorrect {
+            background-color: #fb4934; 
+            color: white;
+        }
+
+        .grading-buttons button.selected.ungraded {
+            background-color: #7c6f64; 
+            color: white;
+        }
+
+        .grading-buttons button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .navigation-buttons .nav-left button {
+            background-color: #458588;
+            margin-left: 0;
+        }
+
+        .navigation-buttons .nav-right button {
+            background-color: #458588;
+            margin-right: 0;
+        }
+    </style>
+<script>
+    let test_cases = {}; // Will hold the test_cases object from the server
+    let gradingStates = {}; // Flat structure for tracking grading states
+    let userid = '{{ user_id }}'; // Replace with the actual user ID
+    let assignment_number = '{{ assignment_number }}'; // Replace with the actual assignment number
+
+    // Function to show a specific file (Submission Code)
+    function showFile(fileId) {
+        document.querySelectorAll('.file-content').forEach(el => el.classList.add('hidden'));
+        document.getElementById(fileId).classList.remove('hidden');
+    }
+
+    function showSection(section) {
+        document.querySelectorAll('.content-block').forEach(el => el.classList.add('hidden'));
+        document.getElementById(section).classList.remove('hidden');
+
+        if (section === 'results-section') {
+            let resultSelect = document.getElementById('result-select');
+            let resultId = resultSelect.value;
+            showResult(resultId);
+        }
+    }
+
+    function flattenTestCases(testCases) {
+        let flatTestCases = {};
+        function flatten(obj, prefix = '') {
+            for (let key in obj) {
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    flatten(obj[key], prefix + key + '\0'); // Recursively flatten
+                } else {
+                    flatTestCases[prefix + key] = obj[key]; // Flatten to the format 'key key2' = state
+                }
+            }
+        }
+        flatten(testCases);
+        return flatTestCases;
+    }
+
+    function unflattenGradingStates(flatGradingStates) {
+        let unflattened = {};
+
+        for (let flatKey in flatGradingStates) {
+            const value = flatGradingStates[flatKey];
+            const keys = flatKey.split('\0');
+            let current = unflattened;
+
+            for (let i = 0; i < keys.length - 1; i++) {
+                const key = keys[i];
+                if (!current[key]) {
+                    current[key] = {};
+                }
+                current = current[key];
+            }
+
+            current[keys[keys.length - 1]] = value;
+        }
+
+        return unflattened;
+    }
+
+    // Fetch test_cases from the server and update the grading states
+    function fetchFeedback() {
+        fetch(`/api/submissions/test_cases?userid=${userid}&assignment_number=${assignment_number}`)
+            .then(response => response.json())
+            .then(data => {
+                test_cases = data.test_cases || {};
+
+                gradingStates = flattenTestCases(test_cases || {});
+
+                let sectionSelect = document.getElementById('section-select');
+                let section = sectionSelect.value;
+
+                if (section === 'results-section') {
+                    let resultSelect = document.getElementById('result-select');
+                    let resultId = resultSelect.value;
+                    showResult(resultId);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching test_cases:', error);
+            });
+    }
+
+    // Show a specific result and update the grading buttons based on the flattened grading state
+    function showResult(resultId) {
+        document.querySelectorAll('.result-content').forEach(el => el.classList.add('hidden'));
+
+        let resultDiv = document.getElementById(resultId);
+        if (resultDiv) {
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Get the current grading state for the result
+        let state = getGradingState(resultId);
+        updateGradingButtons(state);
+    }
+
+    // Get the grading state from the flattened gradingStates object
+    function getGradingState(resultId) {
+        const resultContent = document.querySelector('.result-content:not(.hidden)');
+        if (resultContent) {
+            let h3Tag = resultContent.querySelector('h3');
+            if (h3Tag) {
+                let key = h3Tag.textContent.split(" ").join('\0');
+                return gradingStates[key] !== undefined ? gradingStates[key] : null;
+            }
+        }
+        return null;
+    }
+
+    function setGrading(state) {
+        const resultContent = document.querySelector('.result-content:not(.hidden)');
+        if (resultContent) {
+            let h3Tag = resultContent.querySelector('h3');
+            if (h3Tag) {
+                let key = h3Tag.textContent.split(" ").join('\0');
+                gradingStates[key] = state;
+
+
+                console.log('Updated gradingStates:', gradingStates);
+
+                updateGradingButtons(state);
+                sendFeedbackToServer();
+            }
+        }
+    }
+
+    // Update the original test_cases object based on the flattened key
+    //function updateFeedbackObject(flattenedKey, state) {
+    //    const keyParts = flattenedKey.split('\0');
+    //    let current = test_cases.test_cases;
+    //
+    //    // Traverse the nested structure and update the last key's value
+    //    for (let i = 0; i < keyParts.length - 1; i++) {
+    //        let key = keyParts[i];
+    //        if (!current[key]) {
+    //            current[key] = {};
+    //        }
+    //        current = current[key];
+    //    }
+    //
+    //    current[keyParts[keyParts.length - 1]] = state;
+    //}
+
+    // Update the grading buttons based on the state (null, true, false)
+    function updateGradingButtons(state) {
+        let correctButton = document.getElementById('correct-button');
+        let incorrectButton = document.getElementById('incorrect-button');
+        let ungradedButton = document.getElementById('ungraded-button');
+
+        correctButton.classList.remove('selected', 'correct');
+        incorrectButton.classList.remove('selected', 'incorrect');
+        ungradedButton.classList.remove('selected', 'ungraded');
+
+        if (state === true) {
+            correctButton.classList.add('selected', 'correct');
+        } else if (state === false) {
+            incorrectButton.classList.add('selected', 'incorrect');
+        } else if (state === null) {
+            ungradedButton.classList.add('selected', 'ungraded');
+        }
+    }
+
+    // Send the updated test_cases to the server
+    function sendFeedbackToServer() {
+        //Unflatten gradingStates to get the original nested format
+        const unflattenedTestCases = unflattenGradingStates(gradingStates);
+
+        test_cases = unflattenedTestCases;
+
+        let data = {
+            test_cases:test_cases
+        };
+
+        fetch(`/api/submissions/test_cases?userid=${userid}&assignment_number=${assignment_number}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to update test_cases');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Feedback updated successfully:', data);
+        })
+        .catch(error => {
+            console.error('Error updating test_cases:', error);
+        });
+    }
+
+    // Function to navigate between different result files
+    function navigateFile(direction) {
+        let select = document.getElementById('file-select');
+        let options = select.options;
+        let currentIndex = select.selectedIndex;
+        let newIndex = currentIndex + direction;
+
+        if (newIndex >= 0 && newIndex < options.length) {
+            select.selectedIndex = newIndex;
+            showFile(options[newIndex].value);
+        }
+    }
+
+    // Function to navigate between test results
+    function navigateResult(direction) {
+        let select = document.getElementById('result-select');
+        let options = select.options;
+        let currentIndex = select.selectedIndex;
+        let newIndex = currentIndex + direction;
+
+        if (newIndex >= 0 && newIndex < options.length) {
+            select.selectedIndex = newIndex;
+            let newResultId = options[newIndex].value;
+            showResult(newResultId);
+        }
+    }
+
+    // Force rerender of the page
+    function forceRerender() {
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('force_rerender', 'true');
+        window.location.search = urlParams.toString();
+    }
+
+    // On page load, fetch test_cases and display the corresponding grading state
+    window.onload = function() {
+        let fileSelect = document.getElementById('file-select');
+        let initialFileId = fileSelect.value;
+        showFile(initialFileId);
+
+        let sectionSelect = document.getElementById('section-select');
+        let section = sectionSelect.value;
+        showSection(section);
+
+        fetchFeedback();  // Fetch test_cases and update grading buttons on page load
+    };
+</script>
 </head>
 <body>
 
@@ -34,16 +436,16 @@
     <h1>{{ title }}</h1>
 
     <div class="flex-container">
-    <div>
-    <label for="section-select">View:</label>
-    <select id="section-select" onchange="showSection(this.value)">
-        <option value="code-section">Submission Code</option>
-        <option value="results-section">Test Results</option>
-    </select>
-    </div>
+        <div>
+            <label for="section-select">View:</label>
+            <select id="section-select" onchange="showSection(this.value)">
+                <option value="code-section">Submission Code</option>
+                <option value="results-section">Test Results</option>
+            </select>
+        </div>
 
-    <!-- Re-Render Button -->
-    <button class="rerender-button" onclick="forceRerender()" style="background-color: #EE0707;">Re-Render</button>
+        <!-- Re-Render Button -->
+        <button class="rerender-button" onclick="forceRerender()">Re-Render</button>
     </div>
 
     <!-- Submission Code Section -->
@@ -57,6 +459,16 @@
                 {% endif %}
             {% endfor %}
         </select>
+
+        <!-- Navigation Buttons -->
+        <div class="navigation-buttons">
+            <div class="nav-left">
+                <button onclick="navigateFile(-1)">&#8592; Previous</button>
+            </div>
+            <div class="nav-right">
+                <button onclick="navigateFile(1)">Next &#8594;</button>
+            </div>
+        </div>
 
         {% for tab in tabs %}
             {% if tab.type == 'code' %}
@@ -77,32 +489,51 @@
         <select id="result-select" onchange="showResult(this.value)">
             {% for tab in tabs %}
                 {% if tab.type == 'output' %}
-                    <option value="{{ tab.id }}">{{ tab.title }}</option>
+                    {% set resultId = tab.id %}
+                    <option value="{{ resultId }}">{{ tab.title }}</option>
                 {% endif %}
             {% endfor %}
         </select>
 
+        <!-- Navigation Buttons -->
+        <div class="navigation-buttons">
+            <div class="nav-left">
+                <button onclick="navigateResult(-1)">&#8592; Previous</button>
+            </div>
+            <div class="nav-right">
+                <button onclick="navigateResult(1)">Next &#8594;</button>
+            </div>
+        </div>
+
         {% for tab in tabs %}
             {% if tab.type == 'output' %}
-            <div id="{{ tab.id }}" class="result-content hidden">
-                <h3>{{ tab.title }}</h3>
-                <div class="code-block">
-                    <h4>Output:</h4>
-                    <pre>{{ tab.content | safe }}</pre>
-                    {% if tab.error %}
-                    <h4 class="error">Errors:</h4>
-                    <pre>{{ tab.error | safe }}</pre>
-                    {% endif %}
+                {% set resultId = tab.id %}
+                <div id="{{ resultId }}" class="result-content hidden">
+                    <h3>{{ tab.title }}</h3>
+                    <div class="code-block">
+                        <h4>Command Executed:</h4>
+                        <pre>{{ tab.command }}</pre>
+                        <h4>Expected Result:</h4>
+                        <pre>{{ tab.expected }}</pre>
+                        <h4>Output:</h4>
+                        <pre>{{ tab.content | safe }}</pre>
+                        {% if tab.error %}
+                        <h4 class="error">Errors:</h4>
+                        <pre>{{ tab.error | safe }}</pre>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
             {% endif %}
         {% endfor %}
+
+        <!-- Grading Buttons -->
+        <div class="grading-buttons">
+            <button id="correct-button" class="correct" onclick="setGrading(true)">Correct</button>
+            <button id="incorrect-button" class="incorrect" onclick="setGrading(false)">Incorrect</button>
+            <button id="ungraded-button" class="ungraded" onclick="setGrading(null)">Ungraded</button>
+        </div>
     </div>
 
-    <script>
-        document.querySelector('.file-content').classList.remove('hidden');
-        document.querySelector('.result-content').classList.remove('hidden');
-    </script>
 </body>
 </html>
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.models import Assignment, Submission, Student, Group
 from app.database import get_db
-from .schemas import AssignmentCreate, SubmissionCreate, StudentCreate, GroupCreate, AssignmentUpdate, SubmissionUpdate, SubmissionUpdateGradeFeedback
+from .schemas import AssignmentCreate, SubmissionCreate, StudentCreate, GroupCreate, AssignmentUpdate, SubmissionUpdate, SubmissionUpdateGradeFeedback, SubmissionUpdateTestCases
 
 from typing import List
 
@@ -230,8 +230,55 @@ def get_grade_feedback_by_userid(
             status_code=404, detail="Submission not found for this user and assignment"
         )
 
-    # Return the grade and feedback in a dictionary
     return {
         "grade": db_submission.grade,
         "feedback": db_submission.feedback
+    }
+
+
+@router.put("/submissions/test_cases", response_model=dict)
+def update_grade_feedback_by_userid(
+    submission_data: SubmissionUpdateTestCases,
+    userid: str = Query(...),
+    assignment_number: int = Query(...),
+    db: Session = Depends(get_db)
+):
+    db_submission = db.query(Submission).join(Student).filter(
+        Student.UserID == userid,
+        Submission.assignment_id == assignment_number
+    ).first()
+
+    if db_submission is None:
+        raise HTTPException(
+            status_code=404, detail="Submission not found for this user and assignment")
+
+    if submission_data.test_cases is not None:
+        db_submission.test_cases = submission_data.test_cases
+
+    db.commit()
+    db.refresh(db_submission)
+
+    return {
+        "test_cases": db_submission.test_cases
+    }
+
+
+@router.get("/submissions/test_cases", response_model=dict)
+def get_grade_feedback_by_userid(
+    userid: str = Query(..., description="User ID of the student"),
+    assignment_number: int = Query(..., description="Assignment number"),
+    db: Session = Depends(get_db)
+):
+    db_submission = db.query(Submission).join(Student).filter(
+        Student.UserID == userid,
+        Submission.assignment_id == assignment_number
+    ).first()
+
+    if db_submission is None:
+        raise HTTPException(
+            status_code=404, detail="Submission not found for this user and assignment"
+        )
+
+    return {
+        "test_cases": db_submission.test_cases
     }

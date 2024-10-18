@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <title>Assignment Grading Form</title>
     <link rel="stylesheet" href="/static/form.css">
+<style>
+</style>
+
+
 </head>
 <body>
 
@@ -17,9 +21,22 @@
         </button>
     </div>
 
+
+
+
     <form id="grading-form" onsubmit="submitGrades(event)">
+
+        <!-- New Test Cases Section -->
+        <section id="test-cases-section">
+            <h2 style="color:white;">Test Case Results</h2>
+            <div id="test-cases-container">
+            </div>
+        </section>
+
+
         <!-- Rubric categories will be filled later -->
         {% for category, items in rubric.rubric.items() %}
+
         <section>
             <h2>{{ category }}: {{ items.total_points }} total points</h2>
 
@@ -30,7 +47,8 @@
                 {% for item in items.criteria.radio %}
                 <label>
                     <input type="radio" name="{{ category }}-radio" value="{{ item.deduct }}" data-category="{{ category }}">
-                     - {{ item.deduct }} {{ item.label }} <em style="color: gray; font-weight: lighter;">({{ item.explanation }})</em>
+                     - {{ item.deduct }} {{ item.label }} 
+                        <p><em style="color: gray; font-weight: lighter;">Explanation: {{ item.explanation }}</em></p>
                 </label><br>
                 {% endfor %}
                 <label>
@@ -47,7 +65,8 @@
                 {% for item in items.criteria.checkbox %}
                 <label>
                      <input type="checkbox" value="{{ item.deduct }}" data-category="{{ category }}">
-                     - {{ item.deduct }} {{ item.label }} <em style="color: gray; font-weight: lighter;">({{ item.explanation }})</em>
+                     - {{ item.deduct }} {{ item.label }}
+                        <p><em style="color: gray; font-weight: lighter;">Explanation: {{ item.explanation }}</em></p>
                 </label><br>
                 <label>
                     <p>Feedback:</p>
@@ -93,8 +112,6 @@
         </section>
 
         <div class="button-container">
-            <button type="submit" onclick="submitGrades(event)">Submit Grades</button>
-
             <button id="copyBtn" type="button" style="background-color: #8ec07c; color: white; padding: 14px 20px; font-size: 1.2em; border-radius: 4px; margin-left: 10px;">
                 Copy JSON to Clipboard
             </button>
@@ -112,12 +129,57 @@
         let rubricFeedback = {};
         let extraDeductions = [];
         const grader = "{{ username }}";
+        const user_id = "{{ user_id }}";
+        const assignment_number = "{{ assignment_number }}";
+
+        function renderTestCasesHelper(testCases, container, depth = 0) {
+            Object.keys(testCases).forEach(key => {
+                const value = testCases[key];
+                const testCaseDiv = document.createElement('div');
+                testCaseDiv.classList.add('test-case-item');
+                testCaseDiv.style.marginLeft = `${depth * 20}px`;  // Indent based on the depth
+
+                if (typeof value === 'object' && value !== null) {
+                    testCaseDiv.innerHTML = `<strong>${key}</strong>`;
+                    container.appendChild(testCaseDiv);
+                    // Recursively call the helper function
+                    renderTestCasesHelper(value, container, depth + 1);
+                } else {
+                    let resultText = '';
+                    if (value === true) {
+                        resultText = '<span class="test-case-result correct">correct</span>';
+                    } else if (value === false) {
+                        resultText = '<span class="test-case-result incorrect">incorrect</span>';
+                    } else {
+                        resultText = '<span class="test-case-result ungraded">ungraded</span>';
+                    }
+
+                    testCaseDiv.innerHTML = `"${key}" : ${resultText}`;
+                    container.appendChild(testCaseDiv);
+                }
+            });
+        }
+
+        function renderTestCases() {
+            const container = document.getElementById('test-cases-container');
+            fetch(`/api/submissions/test_cases?userid=${user_id}&assignment_number=${assignment_number}`)
+                .then(response =>response.json())
+                .then(data => {
+                    test_cases = data.test_cases || {};
+                    console.log(test_cases);
+                    renderTestCasesHelper(test_cases,container)
+            })
+            .catch(error => {
+                console.error('Error fetching test_cases:', error);
+            });
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
             const feedback = {{ submission.feedback | tojson }};  // Use the Jinja2-passed submission.feedback directly
 
             if (feedback) {
                 prefillForm(feedback);  // Pre-fill the form with feedback data
+                renderTestCases()
             }
         });
 
@@ -418,7 +480,7 @@
             event.preventDefault();
             const jsonPayload = generateFormJsonPayload();
 
-            fetch(`/api/submissions/feedback?userid={{ user_id }}&assignment_number={{ assignment_number }}`, {
+            fetch(`/api/submissions/feedback?userid=${user_id}&assignment_number=${assignment_number}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -432,7 +494,7 @@
                 return response.json();
             })
             .then(data => {
-                alert('Grade and feedback submitted successfully');
+                console.log('Grade and feedback submitted successfully');
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -505,38 +567,14 @@
         }
 
         function copyJsonToClipboard() {
-            window.focus();
             const jsonPayload = generateFormJsonPayload();
-
-            // Fetch the server version of the feedback
-            fetch(`/api/submissions/feedback?userid={{ user_id }}&assignment_number={{ assignment_number }}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch server data.');
-                    }
-                    return response.json();
-                })
-                .then(serverData => {
-                    // Check if the local JSON matches the server JSON
-                    const serverJson = JSON.stringify(serverData, null);
-                    const localJson = JSON.stringify(jsonPayload, null);
-
-                    if (localJson === serverJson) {
-                        const feedbackString = convertJsonToMessage(jsonPayload);
-                        console.log(feedbackString);
-                        navigator.clipboard.writeText(feedbackString).then(() => {
-                            console.log('JSON payload copied to clipboard!');
-                        }).catch(err => {
-                            console.error('Failed to copy JSON to clipboard: ', err);
-                        });
-                    } else {
-                        alert('Please submit the grades first before copying the JSON.');
-                    }
-                })
-                .catch(err => {
-                    console.error('Error fetching server data: ', err);
-                    alert('Failed to fetch server data for comparison.');
-                });
+            const feedbackString = convertJsonToMessage(jsonPayload);
+            console.log(feedbackString);
+            navigator.clipboard.writeText(feedbackString).then(() => {
+                console.log('JSON payload copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy JSON to clipboard: ', err);
+            });
         }
 
         document.getElementById('copyBtn').addEventListener('click', copyJsonToClipboard);
@@ -546,6 +584,34 @@
             const submissionUrl = currentUrl + "/submission"; // Append /submission to the URL
             window.open(submissionUrl, '_blank'); // Open in a new tab
         }
+
+        const form = document.getElementById('grading-form');
+
+        form.addEventListener('input', function() {
+            const jsonPayload = generateFormJsonPayload();
+
+            fetch(`/api/submissions/feedback?userid=${user_id}&assignment_number=${assignment_number}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonPayload)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Grade and feedback submitted successfully');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting the grade and feedback.');
+            });
+            updateTotalScore();
+        });
     </script>
 </body>
 </html>
