@@ -2,190 +2,180 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <link rel="stylesheet" href="/static/homepage.css">
 </head>
 <body>
 
-    {% include 'navbar.html' %}  <!-- Navbar component -->
-    <!-- Main Container -->
+    {% include 'navbar.html' %}
+
     <div class="container">
-
-        <!-- Navbar -->
-
-        <!-- Title -->
         <h1>{{ title }}</h1>
 
-        <!-- Form to collect additional details -->
-        <div class="form-section">
-            <label for="assignmentName">Assignment Name</label>
-            <input type="text" id="assignmentName" name="assignmentName" placeholder="Enter Assignment Name" required>
-        </div>
+        <!-- First form for Assignment upload -->
+        <form id="uploadForm" action="/upload/all/" method="post" enctype="multipart/form-data">
+            <div class="form-section">
+                <label for="assignmentName">Assignment Name</label>
+                <input type="text" id="assignmentName" name="assignmentName" placeholder="Enter Assignment Name" required>
+            </div>
 
-        <div class="form-section">
-            <label for="assignmentId">Assignment ID</label>
-            <input type="number" id="assignmentId" name="assignmentId" placeholder="Enter Assignment ID" required min="1">
-        </div>
+            <div class="form-section">
+                <label for="assignmentId">Assignment ID</label>
+                <input type="number" id="assignmentId" name="assignmentId" placeholder="Enter Assignment ID" required min="1">
+            </div>
 
-        <div class="form-section">
-            <label for="dueDate">Due Date</label>
-            <input type="date" id="dueDate" name="dueDate" required>
-        </div>
+            <div class="form-section">
+                <label for="dueDate">Due Date</label>
+                <input type="date" id="dueDate" name="dueDate" required>
+            </div>
 
-        <!-- Rubric Upload Section -->
-        <div class="drop-area" id="rubric-drop-area" >
-            <p style="color: white;">Drag and drop a Rubric (.json) file here or click to select one.</p>
-            <input type="file" name="rubricFile" id="rubricElem" accept=".json" required class="hidden">
-            <button type="button" class="choose-file-btn rounded-btn" onclick="document.getElementById('rubricElem').click()">Choose Rubric File</button>
-        </div>
+            <div class="form-section">
+                <label for="rubricFile">Rubric File (.json)</label>
+                <input type="file" id="rubricFile" name="rubricFile" accept=".json" required>
+            </div>
 
-        <!-- Gradebook Upload Section -->
-        <div class="drop-area" id="gradebook-drop-area" style="text-align: center;">
-            <p style="color: white;">Drag and drop a .zip file here or click to select one.</p>
-            <input type="file" name="gradebookFile" id="gradebookElem" accept=".zip" required class="hidden">
-            <button type="button" class="choose-file-btn rounded-btn" onclick="document.getElementById('gradebookElem').click()">Choose Gradebook File</button>
-        </div>
+            <div class="form-section">
+                <label for="gradebookFile">Gradebook File (.zip)</label>
+                <input type="file" id="gradebookFile" name="gradebookFile" accept=".zip" required>
+            </div>
 
-        <!-- Submit Button (Initially disabled) -->
-        <button type="button" id="submitBtn" class="submit-btn" onclick="uploadAll()" disabled>Upload All</button>
+            <button type="submit" id="submitBtn" class="submit-btn" disabled>Upload All</button>
+        </form>
 
+        <!-- Second form for Group upload -->
+        <h2>Upload Group of Students</h2>
+        <form id="groupUploadForm" action="/upload/group" method="post" enctype="multipart/form-data">
+            <div class="form-section">
+                <label for="groupFile">Group File (.txt)</label>
+                <input type="file" id="groupFile" name="groupFile" accept=".txt" required>
+            </div>
+            <button type="submit" id="groupSubmitBtn" class="submit-btn" disabled>Upload Group</button>
+        </form>
     </div>
 
+    <!-- Simplified CSS for the form -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #3c3836;
+            padding: 20px;
+            color: #ebdbb2;
+        }
+
+        h1, h2 {
+            color: #8ec07c;
+        }
+
+        form {
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #504945;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .form-section {
+            margin-bottom: 15px;
+        }
+
+        .form-section label {
+            display: block;
+            margin-bottom: 5px;
+            color: #d79921;
+        }
+
+        .form-section input[type="text"],
+        .form-section input[type="number"],
+        .form-section input[type="date"],
+        .form-section input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 5px;
+            border: 1px solid #8ec07c;
+            border-radius: 5px;
+            background-color: #3c3836;
+            color: #ebdbb2;
+        }
+
+        .submit-btn {
+            background-color: #8ec07c;
+            color: #3c3836;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: not-allowed;
+        }
+
+        .submit-btn.enabled {
+            cursor: pointer;
+        }
+
+        .submit-btn:hover:enabled {
+            background-color: #b8bb26;
+        }
+    </style>
+
     <script>
-        function checkFormCompletion() {
-            const assignmentName = document.getElementById('assignmentName').value;
-            const assignmentId = document.getElementById('assignmentId').value;
-            const dueDate = document.getElementById('dueDate').value;
-            const rubricFile = document.getElementById('rubricElem').files.length > 0;
-            const gradebookFile = document.getElementById('gradebookElem').files.length > 0;
-
+        document.addEventListener('DOMContentLoaded', function() {
             const submitBtn = document.getElementById('submitBtn');
+            const groupSubmitBtn = document.getElementById('groupSubmitBtn');
+            const form = document.getElementById('uploadForm');
+            const groupForm = document.getElementById('groupUploadForm');
+            const requiredFields = form.querySelectorAll('[required]');
+            const groupRequiredFields = groupForm.querySelectorAll('[required]');
 
-            if (assignmentName && assignmentId && dueDate && rubricFile && gradebookFile) {
-                submitBtn.disabled = false;
-            } else {
-                submitBtn.disabled = true;
-            }
-        }
+            function checkFormCompletion() {
+                let allFilled = true;
+                requiredFields.forEach(function(field) {
+                    if (!field.value || (field.type === 'file' && field.files.length === 0)) {
+                        allFilled = false;
+                    }
+                });
 
-        // Event listeners for form inputs
-        document.getElementById('assignmentName').addEventListener('input', checkFormCompletion);
-        document.getElementById('assignmentId').addEventListener('input', checkFormCompletion);
-        document.getElementById('dueDate').addEventListener('input', checkFormCompletion);
-        document.getElementById('rubricElem').addEventListener('change', checkFormCompletion);
-        document.getElementById('gradebookElem').addEventListener('change', checkFormCompletion);
-
-        function handleRubricFileSelection(files) {
-            let dropArea = document.getElementById('rubric-drop-area');
-
-            if (files.length === 0) {
-                alert("Please select a .json file.");
-                dropArea.classList.remove('highlight');
-                return;
-            }
-
-            let file = files[0];
-            if (file.name.toLowerCase().endsWith('.json')) {
-                dropArea.classList.add('highlight');
-            } else {
-                alert("Invalid file type. Please upload a .json file.");
-                dropArea.classList.remove('highlight');
-                document.getElementById('rubricElem').value = '';
-            }
-            checkFormCompletion();
-        }
-
-        function handleGradebookFileSelection(files) {
-            let dropArea = document.getElementById('gradebook-drop-area');
-
-            if (files.length === 0) {
-                alert("Please select a .zip file.");
-                dropArea.classList.remove('highlight');
-                return;
-            }
-
-            let file = files[0];
-            if (file.name.toLowerCase().endsWith('.zip')) {
-                dropArea.classList.add('highlight');
-            } else {
-                alert("Invalid file type. Please upload a .zip file.");
-                dropArea.classList.remove('highlight');
-                document.getElementById('gradebookElem').value = '';
-            }
-            checkFormCompletion();
-        }
-
-        // Initialize each drop area with its own handlers
-        function initDropArea(dropAreaId, fileInputId, handleFileSelection) {
-            let dropArea = document.getElementById(dropAreaId);
-            let fileInput = document.getElementById(fileInputId);
-
-            fileInput.addEventListener('change', (event) => {
-                handleFileSelection(event.target.files);
-            });
-
-            function addHighlight(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropArea.classList.add('highlight');
-            }
-
-            function removeHighlight(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                dropArea.classList.remove('highlight');
-            }
-
-            function handleDrop(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                removeHighlight(e);
-
-                let files = e.dataTransfer.files;
-                if (files.length) {
-                    fileInput.files = files;
-                    handleFileSelection(files);
+                if (allFilled) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.add('enabled');
+                } else {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.remove('enabled');
                 }
             }
 
-            // Assign drag-and-drop events for the drop area
-            dropArea.addEventListener('dragenter', addHighlight);
-            dropArea.addEventListener('dragover', addHighlight);
-            dropArea.addEventListener('dragleave', removeHighlight);
-            dropArea.addEventListener('drop', handleDrop);
-        }
+            function checkGroupFormCompletion() {
+                let allFilled = true;
+                groupRequiredFields.forEach(function(field) {
+                    if (!field.value || (field.type === 'file' && field.files.length === 0)) {
+                        allFilled = false;
+                    }
+                });
 
-        // Initialize drop areas
-        initDropArea('rubric-drop-area', 'rubricElem', handleRubricFileSelection);
-        initDropArea('gradebook-drop-area', 'gradebookElem', handleGradebookFileSelection);
+                if (allFilled) {
+                    groupSubmitBtn.disabled = false;
+                    groupSubmitBtn.classList.add('enabled');
+                } else {
+                    groupSubmitBtn.disabled = true;
+                    groupSubmitBtn.classList.remove('enabled');
+                }
+            }
 
-        // Upload all data
-        function uploadAll() {
-            const assignmentName = document.getElementById('assignmentName').value;
-            const assignmentId = document.getElementById('assignmentId').value;
-            const dueDate = document.getElementById('dueDate').value;
-            const rubricFile = document.getElementById('rubricElem').files[0];
-            const gradebookFile = document.getElementById('gradebookElem').files[0];
+            requiredFields.forEach(function(field) {
+                field.addEventListener('input', checkFormCompletion);
+                field.addEventListener('change', checkFormCompletion);
+            });
 
-            let formData = new FormData();
-            formData.append('assignmentName', assignmentName);
-            formData.append('assignmentId', assignmentId);
-            formData.append('dueDate', dueDate);
-            formData.append('rubricFile', rubricFile);
-            formData.append('gradebookFile', gradebookFile);
-
-            fetch('/upload/all/', {
-                method: 'POST',
-                body: formData
-            }).then(response => response.json())
-              .then(result => {
-                  alert(result.message);
-              }).catch(error => {
-                  alert('Error uploading data: ' + error);
-              });
-        }
+            groupRequiredFields.forEach(function(field) {
+                field.addEventListener('input', checkGroupFormCompletion);
+                field.addEventListener('change', checkGroupFormCompletion);
+            });
+        });
     </script>
+
 </body>
 </html>
 
