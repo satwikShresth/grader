@@ -47,7 +47,8 @@
                 {% for item in items.criteria.radio %}
                 <label>
                     <input type="radio" name="{{ category }}-radio" value="{{ item.deduct }}" data-category="{{ category }}">
-                     - {{ item.deduct }} {{ item.label }} <em style="color: gray; font-weight: lighter;">({{ item.explanation }})</em>
+                     - {{ item.deduct }} {{ item.label }} 
+                        <p><em style="color: gray; font-weight: lighter;">Explanation: {{ item.explanation }}</em></p>
                 </label><br>
                 {% endfor %}
                 <label>
@@ -64,7 +65,8 @@
                 {% for item in items.criteria.checkbox %}
                 <label>
                      <input type="checkbox" value="{{ item.deduct }}" data-category="{{ category }}">
-                     - {{ item.deduct }} {{ item.label }} <em style="color: gray; font-weight: lighter;">({{ item.explanation }})</em>
+                     - {{ item.deduct }} {{ item.label }}
+                        <p><em style="color: gray; font-weight: lighter;">Explanation: {{ item.explanation }}</em></p>
                 </label><br>
                 <label>
                     <p>Feedback:</p>

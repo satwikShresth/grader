@@ -20,6 +20,7 @@
         padding: 10px 20px;
         border-radius: 8px;
         font-family: 'Fira Code', monospace;
+        align-items: center; /* Ensure all items align vertically in the center */
     }
 
     /* Base styles for all navigation links */
@@ -34,6 +35,8 @@
         border-radius: 8px;
         transition: background-color 0.3s ease;
         font-family: 'Fira Code', monospace;
+        display: inline-block;
+        vertical-align: middle; /* Align with other elements */
     }
 
     /* Hover effect for all navigation links */
@@ -59,13 +62,26 @@
         box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
         z-index: 1;
         border-radius: 8px;
-        overflow: hidden;
         right: 0; /* Align the dropdown content to the right edge */
+        top: 100%; /* Position it directly below the dropbtn */
     }
 
     /* Show the dropdown content when hovering over the dropdown */
     .dropdown:hover .dropdown-content {
         display: block;
+    }
+
+    /* Links inside the dropdown */
+    .dropdown-content a {
+        display: block;
+        padding: 10px;
+        background-color: #504945;
+    }
+
+    /* Hover effect for dropdown links */
+    .dropdown-content a:hover {
+        background-color: #3c3836; /* Same hover effect as other links */
+        color: #83a598;
     }
 
     /* Remove bottom border on the last dropdown link */
