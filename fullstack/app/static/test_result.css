@@ -1,74 +1,106 @@
-body { 
-    font-family: 'Fira Code', monospace; 
-    background-color: #3c3836; 
-    color: #f8f8f8; 
-    margin: 0; 
-    padding: 20px; 
+body {
+    font-family: 'Fira Code', monospace;
+    background-color: #3c3836;
+    color: #f8f8f8;
+    margin: 0;
+    padding: 20px;
 }
 
-select { 
-    font-size: 16px; 
-    padding: 10px; 
-    margin: 10px 0; 
-    color: white; 
-    background-color: #458588; 
-    border: none; 
-    border-radius: 8px; /* Rounded corners for dropdown */ 
-    cursor: pointer; 
+select {
+    font-size: 16px;
+    padding: 10px;
+    margin: 10px 0;
+    color: white;
+    background-color: #458588;
+    border: none;
+    border-radius: 8px;
+    /* Rounded corners for dropdown */
+    cursor: pointer;
     appearance: none;
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    /* Smooth transitions */
 }
 
 /* Style for content block with rounded corners */
-.content-block { 
-    background-color: #272822; 
-    padding: 20px; 
-    border: 1px solid #458588; 
-    border-radius: 12px; /* Rounded corners for content block */
-    color: #f8f8f8; 
-    min-height: 400px; 
+.content-block {
+    background-color: #272822;
+    padding: 20px;
+    border: 1px solid #458588;
+    border-radius: 12px;
+    /* Rounded corners for content block */
+    color: #f8f8f8;
+    min-height: 400px;
     margin-top: 10px;
 }
 
 /* Code block styling with Fira Code */
-.code-block { 
-    background-color: #272822; 
-    color: #f8f8f8; 
-    padding: 20px; /* Increased padding */
-    border-radius: 8px; 
-    font-family: 'Fira Code', monospace; /* Apply Fira Code for code */
-    min-height: 500px; /* Make the box taller */
+.code-block {
+    background-color: #272822;
+    color: #f8f8f8;
+    padding: 20px;
+    /* Increased padding */
+    border-radius: 8px;
+    font-family: 'Fira Code', monospace;
+    /* Apply Fira Code for code */
+    min-height: 500px;
+    /* Make the box taller */
 }
 
-.code-block code { font-family: 'Fira Code', monospace; } /* Fira Code for inline code */
+.code-block code {
+    font-family: 'Fira Code', monospace;
+}
+
+/* Fira Code for inline code */
 
 /* Headings */
-h1, h2, h3 { color: #d79921; font-family: 'Fira Code', monospace; }
-p { color: #8ec07c; }
+h1,
+h2,
+h3 {
+    color: #d79921;
+    font-family: 'Fira Code', monospace;
+}
 
-.hidden { display: none; } /* Hide elements initially */
-.error { color: #cc241d; font-weight: bold; font-family: 'Fira Code', monospace; }
+p {
+    color: #8ec07c;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Hide elements initially */
+.error {
+    color: #cc241d;
+    font-weight: bold;
+    font-family: 'Fira Code', monospace;
+}
 
 .controls {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    gap: 20px; /* Optional: Spacing between the dropdown and button */
+    gap: 20px;
+    /* Optional: Spacing between the dropdown and button */
 }
 
 .flex-container {
     display: flex;
     justify-content: space-between;
-    align-items: center; /* Ensure both are vertically aligned */
-    width: 100%; /* Ensure the container spans the full width */
-    box-sizing: border-box; /* Prevent padding/margin issues */
+    align-items: center;
+    /* Ensure both are vertically aligned */
+    width: 100%;
+    /* Ensure the container spans the full width */
+    box-sizing: border-box;
+    /* Prevent padding/margin issues */
 }
 
-select, .rerender-button {
+select,
+.rerender-button {
     font-size: 16px;
     padding: 10px 20px;
-    height: 45px; /* Ensure both have the same height */
+    height: 45px;
+    /* Ensure both have the same height */
     background-color: #458588;
     color: white;
     border: none;
@@ -76,30 +108,38 @@ select, .rerender-button {
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
     font-family: 'Fira Code', monospace;
-    box-sizing: border-box; /* Ensure padding doesn't affect the height/width */
+    box-sizing: border-box;
+    /* Ensure padding doesn't affect the height/width */
 }
 
-.rerender-button{
+.rerender-button {
     background-color: #cc241d;
 }
 
 /* Additional hover and active states for both */
-select:hover, .rerender-button:hover {
-    background-color: #387980; /* Slightly darker color on hover */
+select:hover,
+.rerender-button:hover {
+    background-color: #387980;
+    /* Slightly darker color on hover */
 }
 
-select:focus, .rerender-button:focus {
+select:focus,
+.rerender-button:focus {
     outline: none;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Focus shadow */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    /* Focus shadow */
 }
 
-.rerender-button:active, select:active {
-    transform: scale(0.95); /* Slight shrink effect on click */
+.rerender-button:active,
+select:active {
+    transform: scale(0.95);
+    /* Slight shrink effect on click */
 }
 
 /* General button styles */
 button {
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    /* Smooth transitions */
     font-family: 'Fira Code', monospace;
     padding: 10px 20px;
     margin: 10px;
@@ -110,12 +150,14 @@ button {
 
 /* Hover state */
 button:hover {
-    transform: scale(1.05); /* Slightly scale up */
+    transform: scale(1.05);
+    /* Slightly scale up */
 }
 
 /* Active state */
 button:active {
-    transform: scale(0.95); /* Slightly scale down on click */
+    transform: scale(0.95);
+    /* Slightly scale down on click */
 }
 
 /* Navigation buttons styling */
@@ -156,22 +198,26 @@ button:active {
 }
 
 .grading-buttons button.ungraded {
-    background-color: #a89984; /* A little gray */
+    background-color: #a89984;
+    /* A little gray */
 }
 
 /* Selected states */
 .grading-buttons button.selected.correct {
-    background-color: #689d6a; /* Green */
+    background-color: #689d6a;
+    /* Green */
     color: white;
 }
 
 .grading-buttons button.selected.incorrect {
-    background-color: #fb4934; /* Red */
+    background-color: #fb4934;
+    /* Red */
     color: white;
 }
 
 .grading-buttons button.selected.ungraded {
-    background-color: #7c6f64; /* Lighter gray */
+    background-color: #7c6f64;
+    /* Lighter gray */
     color: white;
 }
 
@@ -191,4 +237,3 @@ button:active {
     background-color: #458588;
     margin-right: 0;
 }
-

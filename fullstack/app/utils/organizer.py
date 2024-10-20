@@ -1,12 +1,10 @@
 import re
 from pathlib import Path
-from typing import Dict
 from zipfile import ZipFile
 from datetime import datetime
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import Submission, Student, Assignment
-import json
 import logging
 
 logger = logging.getLogger('uvicorn.error')
@@ -57,7 +55,6 @@ class Organizer:
             new_file_path = directory_path / filename
             original_file_path.rename(new_file_path)
 
-            # After renaming, read submission.log and extract submission date
             if filename == 'submission.log':
                 self.process_submission_log(
                     new_file_path, userid, new_file_path.parent)
@@ -88,12 +85,10 @@ class Organizer:
                     break
 
         if submission_date:
-            # Populate the Submission DB
             self.populate_submission_db(
                 userid, submission_date, submission_dir)
 
     def populate_submission_db(self, userid: str, submission_date: datetime, submission_dir: Path):
-        """Populates the Submission DB by linking to the student and saving the submission date."""
         db: Session = SessionLocal()
 
         try:
@@ -136,7 +131,6 @@ class Organizer:
             db.close()
 
     def clean_test_cases(self, test_cases):
-        """Recursively replaces non-dictionary values in test_cases with None."""
         if isinstance(test_cases, dict):
             cleaned = {}
             for key, value in test_cases.items():
@@ -154,4 +148,3 @@ class Organizer:
         for subdir in dir_path.iterdir():
             if subdir.is_dir():
                 self.unzip_recursive(subdir)
-

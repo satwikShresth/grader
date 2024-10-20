@@ -15,11 +15,26 @@ class TestRunner:
         self.files = files
         self.conv = Ansi2HTMLConverter(inline=True)
         self.tabs = []
+        self.file_map = self.recursively_find_files(self.submission_folder)
+        logger.info(self.file_map)
+
+    def recursively_find_files(self, folder):
+        """Recursively find files and map them to their names."""
+        return {
+            path.name: path
+            for path in folder.rglob('*')
+            if path.is_file() and not path.name.startswith('.')
+        }
 
     def run_script(self, script_name, *args):
-        command = ['python3', str(
-            self.submission_folder / script_name)] + list(args)
-        logger.info(f"Executing command: {' '.join(command)}")
+        script_path = self.file_map.get(script_name)
+        if not script_path:
+            logger.error(
+                f"Script {script_name} not found in submission folder.")
+            return '', f"Error: {script_name} not found."
+
+        command = ['python3', script_path] + list(args)
+        logger.info(f"Executing command: {script_path}")
         result = subprocess.run(command, capture_output=True, text=True)
         return result.stdout, result.stderr
 
@@ -93,12 +108,13 @@ class TestRunner:
             process_test_cases([file], arguments)
 
         for file in self.files:
-            self.tabs.append({
-                'id': f'code_{file}',
-                'title': file,
-                'content': self.get_formatted_code(self.submission_folder / file),
-                'type': 'code'
-            })
+            file_path = self.file_map.get(file)
+            if file_path:
+                self.tabs.append({
+                    'id': f'code_{file}',
+                    'title': file,
+                    'content': self.get_formatted_code(file_path),
+                    'type': 'code'
+                })
 
         return self.tabs
-

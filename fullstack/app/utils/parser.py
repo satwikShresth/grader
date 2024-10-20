@@ -3,7 +3,6 @@ from app.models import Group, Student
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from app.models import Group, Student
 
 logger = logging.getLogger('uvicorn.error')
 

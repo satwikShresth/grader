@@ -1,13 +1,11 @@
 import logging
-from pathlib import Path
 from app.endpoints import upload, grading
 from app.endpoints.crud import crud
 from app.endpoints.middleware import session
 from app.database import engine, Base
-from app import TEMPLATES, STATIC, DATABASE_URL
+from app import TEMPLATES, STATIC
 
 from fastapi import status
-from uuid import uuid4
 from sqlalchemy.exc import SQLAlchemyError
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates

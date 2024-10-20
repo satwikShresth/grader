@@ -76,14 +76,16 @@ button:hover {
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #3c3836; /* Gruvbox gray */
+    background-color: #3c3836;
+    /* Gruvbox gray */
     padding: 20px;
 }
 
 /* Heading styles */
 h1 {
     text-align: center;
-    color: #458588; /* Gruvbox blue */
+    color: #458588;
+    /* Gruvbox blue */
 }
 
 /* List styles */
@@ -99,7 +101,8 @@ ul li {
 /* Anchor/link styles */
 a {
     text-decoration: none;
-    color: #458588; /* Gruvbox blue */
+    color: #458588;
+    /* Gruvbox blue */
 }
 
 a:hover {
@@ -108,7 +111,8 @@ a:hover {
 
 /* Drop area styles */
 #drop-area {
-    border: 2px dashed #8ec07c; /* Gruvbox green */
+    border: 2px dashed #8ec07c;
+    /* Gruvbox green */
     border-radius: 10px;
     padding: 20px;
     text-align: center;
@@ -116,7 +120,8 @@ a:hover {
 }
 
 #drop-area.highlight {
-    border-color: #8ec07c; /* Gruvbox green */
+    border-color: #8ec07c;
+    /* Gruvbox green */
 }
 
 /* Hide file input */
@@ -127,13 +132,15 @@ a:hover {
 /* File info display */
 #file-info {
     margin-top: 20px;
-    color: #458588; /* Gruvbox blue */
+    color: #458588;
+    /* Gruvbox blue */
 }
 
 /* Button styles */
 button {
     padding: 5px 10px;
-    background-color: #cc241d; /* Gruvbox red */
+    background-color: #cc241d;
+    /* Gruvbox red */
     color: white;
     border: none;
     border-radius: 3px;
@@ -142,7 +149,8 @@ button {
 }
 
 button:hover {
-    background-color: #cc241d; /* Gruvbox red hover */
+    background-color: #cc241d;
+    /* Gruvbox red hover */
 }
 
 /* File list styles */
@@ -152,11 +160,13 @@ button:hover {
 
 #file-list li {
     font-size: 16px;
-    color: #8ec07c; /* Gruvbox green */
+    color: #8ec07c;
+    /* Gruvbox green */
 }
 
 #file-list li button {
     margin-left: 15px;
-    background-color: #cc241d; /* Gruvbox red for delete buttons */
+    background-color: #cc241d;
+    /* Gruvbox red for delete buttons */
     color: white;
 }

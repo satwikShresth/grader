@@ -4,7 +4,6 @@ body {
     color: #ebdbb2;
     padding: 20px;
     font-size: 18px;
-    display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
@@ -21,7 +20,8 @@ h1 {
 
 .assignments-container {
     width: 100%;
-    max-width: 600px; /* Limiting the max-width for better layout */
+    max-width: 600px;
+    /* Limiting the max-width for better layout */
     margin: 0 auto;
 }
 
@@ -30,7 +30,8 @@ h1 {
     background-color: #504945;
     border-radius: 10px;
     padding: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Subtle shadow */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     margin-bottom: 20px;
 }
@@ -51,7 +52,8 @@ h1 {
 /* Table header styles */
 .assignment-card th {
     text-align: left;
-    color: #d79921; /* Gruvbox yellow */
+    color: #d79921;
+    /* Gruvbox yellow */
     font-weight: bold;
     font-size: 20px;
     padding: 10px;
@@ -97,7 +99,8 @@ h1 {
         padding: 15px;
     }
 
-    .assignment-card th, .assignment-card td {
+    .assignment-card th,
+    .assignment-card td {
         font-size: 16px;
     }
 
@@ -105,4 +108,3 @@ h1 {
         font-size: 16px;
     }
 }
-

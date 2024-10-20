@@ -4,7 +4,8 @@ body {
     background-color: #3c3836;
     color: #ebdbb2;
     padding: 20px;
-    font-size: 16px; /* Larger font size */
+    font-size: 16px;
+    /* Larger font size */
     position: relative;
 }
 
@@ -13,41 +14,50 @@ h1 {
     text-align: center;
     color: #d79921;
     margin-bottom: 30px;
-    font-size: 24px; /* Larger font size for the title */
+    font-size: 24px;
+    /* Larger font size for the title */
 }
 
 /* Card container for each student entry */
 .student-card {
-    background-color: #504945; /* Dark gray for the card */
+    background-color: #504945;
+    /* Dark gray for the card */
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Add subtle shadow */
 }
 
 /* Table layout inside each card */
 .student-card table {
     width: 100%;
     border-collapse: separate;
-    border-spacing: 0 10px; /* Spacing between rows inside the card */
+    border-spacing: 0 10px;
+    /* Spacing between rows inside the card */
 }
 
-.student-card th, .student-card td {
+.student-card th,
+.student-card td {
     padding: 10px;
     font-size: 16px;
 }
 
 .student-card th {
     text-align: left;
-    color: #d79921; /* Gruvbox yellow */
+    color: #d79921;
+    /* Gruvbox yellow */
     font-weight: bold;
-    font-size: 18px; /* Bigger font size for the headers */
+    font-size: 18px;
+    /* Bigger font size for the headers */
 }
 
 .student-card td {
-    color: #ebdbb2; /* Light text color */
+    color: #ebdbb2;
+    /* Light text color */
     background-color: #3c3836;
-    border-radius: 5px; /* Round the corners inside each box */
+    border-radius: 5px;
+    /* Round the corners inside each box */
 }
 
 /* Links inside the card */
@@ -59,7 +69,8 @@ a {
 /* Group tabs container */
 .group-tabs-container {
     display: flex;
-    justify-content: space-between; /* Align compile button left and group tabs right */
+    justify-content: space-between;
+    /* Align compile button left and group tabs right */
     align-items: center;
     margin-bottom: 20px;
 }
@@ -94,25 +105,30 @@ a {
     padding: 20px;
     border-radius: 10px;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Add transition for smooth animations */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    /* Add transition for smooth animations */
 }
 
 /* Hover effect: grow slightly */
 .student-card:hover {
-    transform: scale(1.05); /* Slightly larger on hover */
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3); /* Increase shadow */
+    transform: scale(1.05);
+    /* Slightly larger on hover */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    /* Increase shadow */
 }
 
 /* Click effect: temporarily shrink */
 .student-card:active {
-    transform: scale(0.95); /* Slightly smaller on click */
+    transform: scale(0.95);
+    /* Slightly smaller on click */
 }
 
 table {
     width: 100%;
 }
 
-th, td {
+th,
+td {
     padding: 10px;
     text-align: left;
 }
@@ -130,7 +146,8 @@ th {
 .student-card a {
     display: block;
     color: inherit;
-    text-decoration: none; /* Prevent underlining of text */
+    text-decoration: none;
+    /* Prevent underlining of text */
 }
 
 /* Compile Assignments button styles */
@@ -152,25 +169,32 @@ th {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    td, th {
-        font-size: 14px; /* Adjust font size for smaller screens */
+
+    td,
+    th {
+        font-size: 14px;
+        /* Adjust font size for smaller screens */
     }
 
     h1 {
-        font-size: 20px; /* Adjust title font size for smaller screens */
+        font-size: 20px;
+        /* Adjust title font size for smaller screens */
     }
 
     .student-card {
-        padding: 15px; /* Adjust padding for smaller screens */
+        padding: 15px;
+        /* Adjust padding for smaller screens */
     }
 
     .group-tabs {
-        right: 5px; /* Adjust position for smaller screens */
+        right: 5px;
+        /* Adjust position for smaller screens */
         top: 20px;
     }
 
     .group-tabs button {
         padding: 8px 15px;
-        font-size: 12px; /* Smaller buttons on mobile */
+        font-size: 12px;
+        /* Smaller buttons on mobile */
     }
 }
