@@ -5,7 +5,7 @@ import asyncio
 from pathlib import Path
 from concurrent.futures import ProcessPoolExecutor
 from fastapi import APIRouter, Request, HTTPException, Depends, Query, BackgroundTasks
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app import BASE_DIR
@@ -101,11 +101,12 @@ async def grade_assignment_form(request: Request, assignment_number: int, user_i
     )
 
 
-@router.get("/assignment/{assignment_number}/{user_id}/submission", response_class=HTMLResponse)
+@router.get("/assignment/{assignment_number}/{user_id}/submission", response_class=JSONResponse)
 async def get_submission_details(
     request: Request,
     assignment_number: int,
     user_id: str,
+    background_tasks: BackgroundTasks,
     force_rerender: bool = Query(False),
     db: Session = Depends(get_db)
 ):
@@ -128,26 +129,35 @@ async def get_submission_details(
         html_content = result_html_path.read_text(encoding='utf-8')
         return HTMLResponse(content=html_content)
 
-    # Generate test results
-    test_cases = assignment.rubric.get('test_cases', {})
-    files = assignment.rubric.get('files', [])
+    background_tasks.add_task(
+        process_submission,
+        file_path,
+        submission,
+        student,
+        assignment,
+        request.state.user,
+    )
 
-    runner = TestRunner(submission_folder=file_path, files=files)
-    tabs = runner.generate_tabs(test_cases=test_cases)
+    # # Generate test results
+    # test_cases = assignment.rubric.get('test_cases', {})
+    # files = assignment.rubric.get('files', [])
+    #
+    # runner = TestRunner(submission_folder=file_path, files=files)
+    # tabs = runner.generate_tabs(test_cases=test_cases)
+    #
+    # context = {
+    #     "request": request,
+    #     "assignment_number": assignment_number,
+    #     "user_id": student.UserID,
+    #     "submission": submission,
+    #     "tabs": tabs,
+    #     "username": request.state.user,
+    #     "title": f"Assignment {assignment_number} Submission for {student.Name}",
+    # }
+    # html_content = templates.get_template("test_result.html").render(context)
+    # result_html_path.write_text(html_content, encoding='utf-8')
 
-    context = {
-        "request": request,
-        "assignment_number": assignment_number,
-        "user_id": student.UserID,
-        "submission": submission,
-        "tabs": tabs,
-        "username": request.state.user,
-        "title": f"Assignment {assignment_number} Submission for {student.Name}",
-    }
-    html_content = templates.get_template("test_result.html").render(context)
-    result_html_path.write_text(html_content, encoding='utf-8')
-
-    return HTMLResponse(content=html_content)
+    return {"status": f"Processing submission of {student.UserID} in background"}
 
 
 def process_submission(file_path, submission, student, assignment, user):
@@ -199,7 +209,7 @@ async def process_submissions_in_background(user, submissions, assignment, db):
         await asyncio.gather(*tasks)
 
 
-@router.post("/assignment/process-submissions")
+@ router.post("/assignment/process-submissions", response_class=JSONResponse)
 async def process_all_submissions(
     request: Request,
     background_tasks: BackgroundTasks,
@@ -224,4 +234,3 @@ async def process_all_submissions(
     )
 
     return {"status": "Processing submissions in background"}
-

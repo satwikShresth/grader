@@ -504,25 +504,8 @@
 
 
 
-        function convertJsonToMessage(jsonPayload, maxLength = 50) {
-            let message = `Grade: ${jsonPayload.grade}\n---------------------\n`;
-
-            // Function to handle line breaks for long feedback
-            function addLineBreaks(text, maxLength) {
-                const words = text.split(' ');
-                let formattedText = '';
-                let line = '';
-
-                words.forEach(word => {
-                    if ((line + word).length > maxLength) {
-                        formattedText += line.trim() + '\n\t\t';  // Line break and indent for new line
-                        line = '';
-                    }
-                    line += word + ' ';
-                });
-
-                return formattedText + line.trim();
-            }
+        function convertJsonToMessage(jsonPayload) {
+            let message = `Grade: ${jsonPayload.grade}\n-------------\n`;
 
             // Handle rubric feedback
             if (jsonPayload.feedback && jsonPayload.feedback.rubric_feedback) {
@@ -530,41 +513,48 @@
                     const rubricItem = jsonPayload.feedback.rubric_feedback[category];
                     message += `${category}:\n`;
 
-                    if (Array.isArray(rubricItem)) {
-                        rubricItem.forEach(item => {
-                            message += `\t - ${item.deduct} : ${item.label}\n`;
-                            message += `\t\t - ${addLineBreaks(item.feedback, maxLength)}\n`;
-                        });
-                    } else if (rubricItem.radio) {
-                        message += `\t - ${rubricItem.radio.deduct} : ${rubricItem.radio.label}\n`;
-                        message += `\t\t - ${addLineBreaks(rubricItem.radio.feedback, maxLength)}\n`;
+                    if (rubricItem.radio) {
+                        message += `- ${rubricItem.radio.deduct}: ${rubricItem.radio.label}\n`;
+                        if (rubricItem.radio.feedback)
+                            message += `${rubricItem.radio.feedback}\n`;
                     }
+
+                    if (rubricItem.checkbox) {
+                        rubricItem.checkbox.forEach(item => {
+                            message += `- ${item.deduct}: ${item.label}\n`;
+                            if (item.feedback)
+                                message += `${item.feedback}\n`;
+                        });
+                    }
+                    // Add separator after each rubric feedback section
+                    message += `-------------\n`;
                 });
             }
 
             // Handle extra deductions
             if (jsonPayload.feedback && jsonPayload.feedback.extra_deductions && jsonPayload.feedback.extra_deductions.length > 0) {
-                message += `---------------------\n`;
                 jsonPayload.feedback.extra_deductions.forEach(deduction => {
-                    message += ` - ${deduction.points} : ${addLineBreaks(deduction.feedback, maxLength)}\n`;
+                    message += `- ${deduction.points}: ${deduction.feedback}\n`;
                 });
+
+                // Add separator after extra deductions section
+                message += `-------------\n`;
             }
 
             // Handle overall feedback
             if (jsonPayload.feedback && jsonPayload.feedback.overall_feedback) {
-                message += `---------------------\n`;
-                message += `Feedback:\n`;
-                message += `\t - ${addLineBreaks(jsonPayload.feedback.overall_feedback, maxLength)}\n`;
+                message += `Feedback:\n${jsonPayload.feedback.overall_feedback}\n`;
+                message += `-------------\n`
             }
 
             // Add the grader's name at the end
             if (jsonPayload.feedback.grader) {
-                message += `---------------------\n`;
-                message += `- ${jsonPayload.feedback.grader}`;
+                message += `Grader: ${jsonPayload.feedback.grader}`;
             }
 
             return message;
         }
+
 
         function copyJsonToClipboard() {
             const jsonPayload = generateFormJsonPayload();
