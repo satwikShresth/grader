@@ -11,12 +11,21 @@
 
     <h1>Assignment {{ assignment_number }} Grades</h1>
 
+    <!-- Summary Section -->
+    <div class="summary-container">
+        <p id="graded-summary">Total Graded: 0 / {{ students | length }}</p>
+        <div id="group-summary"></div>
+    </div>
+
     <!-- Group tabs above student cards, aligned to the right -->
     <div class="group-tabs-container">
 
         <button class="compile-assignments-btn" onclick="compileAssignments()">Compile Assignments</button>
 
         <div class="group-tabs">
+            <!-- Graded Button -->
+            <button class="group-tab" id="graded-button" onclick="toggleGraded()">Ungraded Only</button>
+
             Group
             {% for group in groups %}
             <button class="group-tab" data-group="{{ group }}" onclick="toggleGroup('{{ group }}')">
@@ -31,7 +40,7 @@
         {% if student.submission_date %}
         <!-- Make the whole card clickable, leading to the form -->
         <a href="/grade/assignment/{{ assignment_number }}/{{ student.UserID }}">
-            <div class="student-card" data-group="{{ student.group }}">
+            <div class="student-card" data-group="{{ student.group }}" data-graded="{% if student.grade %}yes{% else %}no{% endif %}">
                 <table>
                     <tr>
                         <th>User ID:</th>
@@ -74,6 +83,7 @@
             });
         }
 
+        // Function to toggle the visibility of students based on groups
         function toggleGroup(group) {
             const groupCards = document.querySelectorAll(`.student-card[data-group="${group}"]`);
             const groupButton = document.querySelector(`button[data-group="${group}"]`);
@@ -87,11 +97,71 @@
                 }
             });
 
-
-
             // Toggle active/inactive state of the button
             groupButton.classList.toggle('inactive');
+        }
+
+        // Function to toggle visibility of graded students
+        function toggleGraded() {
+            const gradedButton = document.getElementById('graded-button');
+            const gradedCards = document.querySelectorAll('.student-card[data-graded="yes"]');
+
+            // Toggle the visibility of graded student cards
+            gradedCards.forEach(card => {
+                card.classList.toggle('hidden');
+            });
+
+            // Toggle the button's active/inactive state
+            if (gradedButton.classList.contains('active')) {
+                gradedButton.classList.remove('active');
+                gradedButton.classList.add('inactive');
+            } else {
+                gradedButton.classList.remove('inactive');
+                gradedButton.classList.add('active');
+            }
+        }
+
+        function updateGradedSummary() {
+            const totalStudents = document.querySelectorAll('.student-card').length;
+            const gradedStudents = document.querySelectorAll('.student-card[data-graded="yes"]').length;
+
+            document.getElementById('graded-summary').innerText = `Total Graded: ${gradedStudents} / ${totalStudents}`;
+
+            // Group-wise summary
+            const groupSummary = {};
+            const groupCards = document.querySelectorAll('.student-card');
+
+            groupCards.forEach(card => {
+                const group = card.getAttribute('data-group');
+                const isGraded = card.getAttribute('data-graded') === 'yes';
+
+                if (!groupSummary[group]) {
+                    groupSummary[group] = { total: 0, graded: 0 };
+                }
+
+                groupSummary[group].total++;
+                if (isGraded) {
+                    groupSummary[group].graded++;
+                }
+            });
+
+            const groupSummaryContainer = document.getElementById('group-summary');
+            groupSummaryContainer.innerHTML = '';  // Clear existing summary
+
+            for (const group in groupSummary) {
+                const { total, graded } = groupSummary[group];
+                const groupSummaryLine = document.createElement('p');
+                groupSummaryLine.innerText = `Group ${group}: ${graded} / ${total}`;
+                groupSummaryContainer.appendChild(groupSummaryLine);
+            }
+        }
+
+        // Hide graded students by default when the page loads
+        window.onload = function() {
+            toggleGraded();
+            updateGradedSummary();
         }
     </script>
 </body>
 </html>
+

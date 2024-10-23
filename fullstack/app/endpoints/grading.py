@@ -1,5 +1,7 @@
+from typing import List, Optional
+from collections import defaultdict
+from datetime import timedelta, timezone
 import os
-import json
 import logging
 import asyncio
 from pathlib import Path
@@ -97,6 +99,7 @@ async def grade_assignment_form(request: Request, assignment_number: int, user_i
             "submission": submission_data,
             "user_id": user_id,
             "username": request.state.user,
+            "title": f"Assignment {submission.assignment_id} Submission for {student.Name}",
         }
     )
 
@@ -234,3 +237,78 @@ async def process_all_submissions(
     )
 
     return {"status": "Processing submissions in background"}
+
+
+@router.post("/assignment/late", response_class=JSONResponse)
+async def get_late_submissions(
+    assignment_number: int = Query(
+        ..., description="The ID of the assignment (must be an integer)"),
+    groups: Optional[List[int]] = Query(
+        None, description="List of group numbers to filter by (optional)"),
+    db: Session = Depends(get_db)
+):
+    # Fetch the assignment using the assignment number
+    assignment = db.query(Assignment).filter(
+        Assignment.id == assignment_number).first()
+
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Assignment not found")
+
+    # Define the grace period: 15 minutes after the due date
+    grace_period = assignment.due_date + timedelta(minutes=5)
+
+    # Fetch submissions that are past due (and not exactly at 23:59)
+    late_submissions = db.query(Submission).filter(
+        Submission.assignment_id == assignment_number,
+        Submission.submission_date > grace_period,  # Submissions after the grace period
+        Submission.submission_date != assignment.due_date.replace(
+            hour=23, minute=59)  # Exclude exactly 23:59
+    ).all()
+
+    if not late_submissions:
+        return {"message": "No late submissions found"}
+
+    # Ensure that grace_period is timezone-aware, and compare it correctly with submission dates
+    if grace_period.tzinfo is None:
+        # Assuming UTC if no timezone info is present
+        grace_period = grace_period.replace(tzinfo=timezone.utc)
+
+    # Create a response with late submission details grouped by student group
+    grouped_late_students = defaultdict(list)
+
+    for submission in late_submissions:
+        submission_date = submission.submission_date
+        if submission_date.tzinfo is None:
+            # Assuming UTC if no timezone info is present for submission date
+            submission_date = submission_date.replace(tzinfo=timezone.utc)
+
+        # Calculate "late by" duration
+        late_by_duration = submission_date - grace_period
+
+        # Convert the late_by_duration into days, hours, and minutes
+        days = late_by_duration.days
+        hours, remainder = divmod(late_by_duration.seconds, 3600)
+        minutes = remainder // 60
+
+        # Format the "late by" string
+        late_by_str = f"{days} day{'s' if days != 1 else ''} {hours} hour{
+            's' if hours != 1 else ''} {minutes} min{'s' if minutes != 1 else ''}"
+
+        # Get the student's group (if any), or assign 'Ungrouped' if no group exists
+        group = submission.student.group.group_number if submission.student.group else "Ungrouped"
+
+        # If groups are provided, only include submissions from the specified groups
+        if groups and group != "Ungrouped" and group not in groups:
+            continue
+
+        # Append the late student data to the appropriate group
+        grouped_late_students[group].append({
+            "UserID": submission.student.UserID,
+            "Name": submission.student.Name,
+            "submission_date": submission.submission_date,
+            "grade": submission.grade,
+            "late_by": late_by_str
+        })
+
+    # Return the grouped data
+    return {"late_submissions": grouped_late_students}

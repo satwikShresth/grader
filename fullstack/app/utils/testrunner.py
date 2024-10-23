@@ -33,10 +33,16 @@ class TestRunner:
                 f"Script {script_name} not found in submission folder.")
             return '', f"Error: {script_name} not found."
 
-        command = ['python3', script_path] + list(args)
+        command = ['python3', script_path] + [arg for arg in args if arg != ""]
         logger.info(f"Executing command: {script_path}")
-        result = subprocess.run(command, capture_output=True, text=True)
-        return result.stdout, result.stderr
+
+        try:
+            result = subprocess.run(
+                command, capture_output=True, text=True, timeout=30)
+            return result.stdout, result.stderr
+        except subprocess.TimeoutExpired:
+            logger.error(f"Script {script_name} timed out after 30 seconds.")
+            return '', f"Error: {script_name} timed out after 30 seconds."
 
     def truncate_output(self, output, num_lines=100):
         lines = output.splitlines()
